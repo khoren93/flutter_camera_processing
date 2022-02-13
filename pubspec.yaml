@@ -27,3 +27,18 @@ flutter:
         pluginClass: FlutterCameraProcessingPlugin
       ios:
         pluginClass: FlutterCameraProcessingPlugin
+
+ffigen:
+  name: GeneratedBindings
+  description: Bindings to opencv and zxing.
+  output: 'lib/generated_bindings.dart'
+  headers:
+    entry-points:
+      - 'ios/Classes/src/native_opencv.h'
+      - 'ios/Classes/src/native_zxing.h'
+  # functions:
+  #   include:
+  #     - 'opencvVersion'
+  #     - 'opencvProcessStream'
+  #     - 'zxingVersion'
+  #     - 'zxingProcessStream'
