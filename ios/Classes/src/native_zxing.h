@@ -1,4 +1,3 @@
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,5 +12,5 @@ extern "C" {
     char *zxingProcessStream(char *bytes, int width, int height, int cropSize);
 
 #ifdef __cplusplus
-} // closing brace for extern "C"
+}
 #endif

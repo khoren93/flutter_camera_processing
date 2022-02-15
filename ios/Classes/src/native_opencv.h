@@ -8,5 +8,5 @@ extern "C" {
     uint32_t *opencvProcessStream(char *bytes, int width, int height);
 
 #ifdef __cplusplus
-} // closing brace for extern "C"
+}
 #endif

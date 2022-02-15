@@ -20,15 +20,17 @@ extern "C"
         long long start = get_now();
 
         Mat src = Mat(height, width, CV_8UC1, bytes);
-        // cv::Rect cropBox(width / 2 - cropSize / 2, height / 2 - cropSize / 2, cropSize, cropSize);
-        // src = src(cropBox);
 
         long length = src.total() * src.elemSize();
         uint8_t *data = new uint8_t[length];
         memcpy(data, src.data, length);
         
+        // BarcodeFormats formats = BarcodeFormat::Any;
+        BarcodeFormats formats = BarcodeFormat::TwoDCodes;
+        DecodeHints hints = DecodeHints().setTryHarder(false).setTryRotate(true).setFormats(formats);
         ImageView image{data, width, height, ImageFormat::Lum};
-        Result result = ReadBarcode(image);
+        ImageView cropped = image.cropped(width / 2 - cropSize / 2, height / 2 - cropSize / 2, cropSize, cropSize);
+        Result result = ReadBarcode(cropped, hints);
         
         struct CodeResult code = {false, nullptr};
         if (result.isValid()) {

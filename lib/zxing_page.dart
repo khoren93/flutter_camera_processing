@@ -20,7 +20,7 @@ class ZxingPage extends StatefulWidget {
     this.beep = true,
     this.showCroppingRect = true,
     this.scanFps = const Duration(milliseconds: 500),
-    this.cropPercent = 0.3, // 30%
+    this.cropPercent = 0.2, // 20%
     this.resolution = ResolutionPreset.high,
   }) : super(key: key);
 
