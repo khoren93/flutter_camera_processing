@@ -29,27 +29,24 @@ class GeneratedBindings {
   late final _opencvVersion =
       _opencvVersionPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
 
-  ffi.Pointer<ffi.Int8> opencvProcessStream(
+  ffi.Pointer<ffi.Uint32> opencvProcessStream(
     ffi.Pointer<ffi.Int8> bytes,
     int width,
     int height,
-    ffi.Pointer<ffi.Int8> outputImagePath,
   ) {
     return _opencvProcessStream(
       bytes,
       width,
       height,
-      outputImagePath,
     );
   }
 
   late final _opencvProcessStreamPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Int8> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Int32, ffi.Pointer<ffi.Int8>)>>('opencvProcessStream');
+          ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Int32)>>('opencvProcessStream');
   late final _opencvProcessStream = _opencvProcessStreamPtr.asFunction<
-      ffi.Pointer<ffi.Int8> Function(
-          ffi.Pointer<ffi.Int8>, int, int, ffi.Pointer<ffi.Int8>)>();
+      ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, int, int)>();
 
   ffi.Pointer<ffi.Int8> zxingVersion() {
     return _zxingVersion();
@@ -65,21 +62,27 @@ class GeneratedBindings {
     ffi.Pointer<ffi.Int8> bytes,
     int width,
     int height,
-    ffi.Pointer<ffi.Int8> outputImagePath,
+    int cropSize,
   ) {
     return _zxingProcessStream(
       bytes,
       width,
       height,
-      outputImagePath,
+      cropSize,
     );
   }
 
   late final _zxingProcessStreamPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Int8> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Int32, ffi.Pointer<ffi.Int8>)>>('zxingProcessStream');
+              ffi.Int32, ffi.Int32)>>('zxingProcessStream');
   late final _zxingProcessStream = _zxingProcessStreamPtr.asFunction<
-      ffi.Pointer<ffi.Int8> Function(
-          ffi.Pointer<ffi.Int8>, int, int, ffi.Pointer<ffi.Int8>)>();
+      ffi.Pointer<ffi.Int8> Function(ffi.Pointer<ffi.Int8>, int, int, int)>();
+}
+
+class CodeResult extends ffi.Struct {
+  @ffi.Int32()
+  external int isValid;
+
+  external ffi.Pointer<ffi.Int8> text;
 }

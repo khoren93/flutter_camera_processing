@@ -3,9 +3,13 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
+import 'package:flutter_camera_processing/opencv_page.dart';
+import 'package:flutter_camera_processing/zxing_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MaterialApp(
+    home: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
@@ -17,6 +21,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  String _opencvVersion = 'Unknown';
+  String _zxingVersion = 'Unknown';
 
   @override
   void initState() {
@@ -30,10 +36,17 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await FlutterCameraProcessing.platformVersion ?? 'Unknown platform version';
+      platformVersion = await FlutterCameraProcessing.platformVersion ??
+          'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
+    }
+
+    try {
+      _opencvVersion = FlutterCameraProcessing.opencvVersion();
+      _zxingVersion = FlutterCameraProcessing.zxingVersion();
+    } on Exception catch (e) {
+      debugPrint(e.toString());
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -48,14 +61,51 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Camera Processing Demo'),
+      ),
+      body: Column(
+        children: [
+          Card(
+            child: ListTile(
+              title: const Text('OpenCV Demo'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OpencvPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: const Text('ZXing Demo'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ZxingPage(onScan: (result) {
+                      debugPrint('Scan result: $result');
+                    }),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Spacer(flex: 5),
+          Center(
+            child: Text(
+              'Running on: $_platformVersion\n\nOpenCV: $_opencvVersion\n\nZXing: $_zxingVersion\n',
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const Spacer(),
+        ],
       ),
     );
   }

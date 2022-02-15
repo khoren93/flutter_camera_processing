@@ -1,2 +1,17 @@
-extern const char *zxingVersion();
-extern const char *zxingProcessStream(char *bytes, int width, int height, char *outputImagePath);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    struct CodeResult
+    {
+        int isValid;
+        char *text;
+    };
+
+    char *zxingVersion();
+    char *zxingProcessStream(char *bytes, int width, int height, int cropSize);
+
+#ifdef __cplusplus
+} // closing brace for extern "C"
+#endif

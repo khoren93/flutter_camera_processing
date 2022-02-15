@@ -1,2 +1,12 @@
-extern const char *opencvVersion();
-extern const char *opencvProcessStream(char *bytes, int width, int height, char *outputImagePath);
+typedef unsigned int uint32_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    const char *opencvVersion();
+    uint32_t *opencvProcessStream(char *bytes, int width, int height);
+
+#ifdef __cplusplus
+} // closing brace for extern "C"
+#endif
