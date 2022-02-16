@@ -62,4 +62,4 @@ rm -R "$zxingPath/ZXVersion.h.in"
 echo "ZXing $zxing_version has been successfully installed"
 
 # remove the downloaded files
-# rm -R ../download
+rm -R ../download
