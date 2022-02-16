@@ -5,7 +5,7 @@ This Flutter plugin created to show how to use OpenCV and ZXing C++ libraries na
 ## App Features
 
 - [X] Used [OpenCV](https://github.com/opencv/opencv) C++ library to process the camera stream
-- [X] Used [ZXing](https://github.com/nu-book/zxing-cpp) C++ library to scan more than 30 barcode types
+- [X] Used [ZXing](https://github.com/nu-book/zxing-cpp) C++ library to scan more than 15 barcode types
 - [X] Used [Dart FFI](https://pub.dev/packages/ffi) to access the native libraries.
 - [X] Used Dart [ffigen](https://pub.dev/packages/ffigen) to generate FFI bindings
 - [X] Works on Android and iOS
