@@ -1,6 +1,5 @@
 #include "common.h"
 #include "zxing/src/ReadBarcode.h"
-#include <opencv2/opencv.hpp>
 #include "native_zxing.h"
 
 using namespace ZXing;
@@ -19,11 +18,9 @@ extern "C"
     {
         long long start = get_now();
 
-        Mat src = Mat(height, width, CV_8UC1, bytes);
-
-        long length = src.total() * src.elemSize();
+        long length = width * height;
         uint8_t *data = new uint8_t[length];
-        memcpy(data, src.data, length);
+        memcpy(data, bytes, length);
         
         BarcodeFormats formats = BarcodeFormat::Any;
         // BarcodeFormats formats = BarcodeFormat::TwoDCodes;
