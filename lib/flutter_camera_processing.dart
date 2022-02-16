@@ -34,9 +34,9 @@ class FlutterCameraProcessing {
     return bindings.zxingVersion().cast<Utf8>().toDartString();
   }
 
-  static void zxingProcessStream(
+  static CodeResult zxingProcessStream(
       Uint8List bytes, int width, int height, int cropSize) {
-    bindings.zxingProcessStream(
+    return bindings.zxingProcessStream(
         bytes.allocatePointer(), width, height, cropSize);
   }
 }

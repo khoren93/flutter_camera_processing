@@ -2,15 +2,49 @@ import 'dart:async';
 // import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
+import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_beep/flutter_beep.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
+import 'package:flutter_camera_processing/generated_bindings.dart';
 import 'package:flutter_camera_processing/image_converter.dart';
 
 import 'scanner_overlay.dart';
+
+extension Code on CodeResult {
+  bool get isValidBool => isValid == 1;
+  String get textString => text.cast<Utf8>().toDartString();
+
+  String get formatString {
+    return _formatValues[format] ?? 'Unknown';
+  }
+
+  static final _formatValues = {
+    Format.None: 'None',
+    Format.Aztec: 'Aztec',
+    Format.Codabar: 'CodaBar',
+    Format.Code39: 'Code39',
+    Format.Code93: 'Code93',
+    Format.Code128: 'Code128',
+    Format.DataBar: 'DataBar',
+    Format.DataBarExpanded: 'DataBarExpanded',
+    Format.DataMatrix: 'DataMatrix',
+    Format.EAN8: 'EAN8',
+    Format.EAN13: 'EAN13',
+    Format.ITF: 'ITF',
+    Format.MaxiCode: 'MaxiCode',
+    Format.PDF417: 'PDF417',
+    Format.QRCode: 'QR Code',
+    Format.UPCA: 'UPCA',
+    Format.UPCE: 'UPCE',
+    Format.OneDCodes: 'OneD',
+    Format.TwoDCodes: 'TwoD',
+    Format.Any: 'Any',
+  };
+}
 
 class ZxingPage extends StatefulWidget {
   const ZxingPage({
@@ -24,7 +58,7 @@ class ZxingPage extends StatefulWidget {
     this.resolution = ResolutionPreset.high,
   }) : super(key: key);
 
-  final Function(String) onScan;
+  final Function(CodeResult) onScan;
   final Function(CameraController?)? onControllerCreated;
   final bool beep;
   final bool showCroppingRect;
@@ -41,10 +75,10 @@ class _ZxingPageState extends State<ZxingPage> {
   CameraController? controller;
 
   bool _shouldScan = false;
-
-  final resultStream = StreamController<Uint8List>.broadcast();
-
   bool isAndroid() => Theme.of(context).platform == TargetPlatform.android;
+
+  // Result queue
+  final _resultQueue = <CodeResult>[];
 
   @override
   void initState() {
@@ -140,11 +174,14 @@ class _ZxingPageState extends State<ZxingPage> {
         final bytes = await convertImage(image);
         final cropSize =
             (max(image.width, image.height) * widget.cropPercent).round();
-        FlutterCameraProcessing.zxingProcessStream(
+        final result = FlutterCameraProcessing.zxingProcessStream(
             bytes, image.width, image.height, cropSize);
-        // final img = imglib.Image.fromBytes(image.width, image.height, result);
-        // final resultBytes = Uint8List.fromList(imglib.encodeJpg(img));
-        // resultStream.add(resultBytes);
+        if (result.isValidBool) {
+          FlutterBeep.beep();
+          _resultQueue.add(result);
+          widget.onScan(result);
+          setState(() {});
+        }
       } on FileSystemException catch (e) {
         debugPrint(e.message);
       } catch (e) {
@@ -159,47 +196,66 @@ class _ZxingPageState extends State<ZxingPage> {
     final size = MediaQuery.of(context).size;
     final cropSize =
         min(size.width, size.height) * widget.cropPercent * 2.0 * 0.8;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Zxing Demo'),
-      ),
-      body: Stack(
-        children: [
-          // Camera preview
-          Center(child: _cameraPreviewWidget(cropSize)),
-          // Processing overlay
-          Positioned(
-            top: 10,
-            left: 10,
-            child: StreamBuilder<Uint8List>(
-              stream: resultStream.stream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(cropSize / 8),
-                      child: RotatedBox(
-                        quarterTurns: isAndroid() ? 1 : 0,
-                        child: Image.memory(
-                          snapshot.requireData,
-                          width: size.width / 2,
-                          height: size.height / 2,
-                        ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Zxing Demo'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Scanner'),
+              Tab(text: 'Result'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            // Scanner
+            Stack(
+              children: [
+                // Camera preview
+                Center(child: _cameraPreviewWidget(cropSize)),
+              ],
+            ),
+            // Result
+            ListView.builder(
+              itemCount: _resultQueue.length,
+              itemBuilder: (context, index) {
+                final result = _resultQueue[index];
+                return ListTile(
+                  title: Text(result.textString),
+                  subtitle: Text(result.formatString),
+                  trailing: ButtonBar(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Copy button
+                      TextButton(
+                        child: const Text('Copy'),
+                        onPressed: () {
+                          Clipboard.setData(
+                              ClipboardData(text: result.textString));
+                        },
                       ),
-                    ),
-                  );
-                } else {
-                  return Container();
-                }
+                      // Remove button
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          _resultQueue.removeAt(index);
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Display the preview from the camera (or a message if the preview is not available).
+  // Display the preview from the camera.
   Widget _cameraPreviewWidget(double cropSize) {
     final CameraController? cameraController = controller;
     if (cameraController == null || !cameraController.value.isInitialized) {

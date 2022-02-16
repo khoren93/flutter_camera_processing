@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
+import 'package:flutter_camera_processing/generated_bindings.dart';
 import 'package:flutter_camera_processing/opencv_page.dart';
 import 'package:flutter_camera_processing/zxing_page.dart';
 
@@ -89,9 +90,13 @@ class _MyAppState extends State<MyApp> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ZxingPage(onScan: (result) {
-                      debugPrint('Scan result: $result');
-                    }),
+                    builder: (context) => ZxingPage(
+                      scanFps: const Duration(milliseconds: 1000),
+                      cropPercent: 0.2,
+                      onScan: (result) {
+                        onCodeScanned(result, context);
+                      },
+                    ),
                   ),
                 );
               },
@@ -100,7 +105,7 @@ class _MyAppState extends State<MyApp> {
           const Spacer(flex: 5),
           Center(
             child: Text(
-              'Running on: $_platformVersion\n\nOpenCV: $_opencvVersion\n\nZXing: $_zxingVersion\n',
+              'Running on: $_platformVersion\n\nOpenCV: $_opencvVersion\n\nZXing-cpp: $_zxingVersion\n',
               textAlign: TextAlign.center,
             ),
           ),
@@ -108,5 +113,34 @@ class _MyAppState extends State<MyApp> {
         ],
       ),
     );
+  }
+
+  void onCodeScanned(CodeResult result, BuildContext context) {
+    if (result.isValidBool) {
+      var format = result.formatString;
+      var message = result.textString;
+      debugPrint(message);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(format),
+              Text(message, textAlign: TextAlign.center),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'Copy',
+            onPressed: () {
+              Clipboard.setData(
+                ClipboardData(text: message),
+              );
+            },
+          ),
+        ),
+      );
+    }
   }
 }

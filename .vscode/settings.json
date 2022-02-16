@@ -6,6 +6,10 @@
         "string": "cpp",
         "string_view": "cpp",
         "vector": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "__node_handle": "cpp",
+        "optional": "cpp",
+        "regex": "cpp",
+        "system_error": "cpp"
     }
 }
