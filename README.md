@@ -18,6 +18,9 @@ Run [init.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/
 sh init.sh
 ```
 
+If you are downloaded the zip file from github repository, then you should rename the folder from `flutter_camera_processing_master` to `flutter_camera_processing` and run the command below. 
+Otherwise, you should change the project name to `flutter_camera_processing_master` in the init.sh script.
+
 ## License
 
 MIT License. See [LICENSE](https://github.com/khoren93/flutter_camera_processing/blob/master/LICENSE).
