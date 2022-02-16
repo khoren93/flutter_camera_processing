@@ -3,7 +3,6 @@
 #include "native_zxing.h"
 
 using namespace ZXing;
-using namespace cv;
 
 extern "C"
 {
