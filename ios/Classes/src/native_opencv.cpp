@@ -13,7 +13,7 @@ extern "C"
     }
 
     FUNCTION_ATTRIBUTE
-    uint32_t *opencvProcessStream(char *bytes, int width, int height)
+    unsigned int *opencvProcessStream(char *bytes, int width, int height)
     {
         long long start = get_now();
 
@@ -30,7 +30,6 @@ extern "C"
 
         int evalInMillis = static_cast<int>(get_now() - start);
         platform_log("Decode done in %dms\n", evalInMillis);
-
         return result;
     }
 }

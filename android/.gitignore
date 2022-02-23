@@ -8,3 +8,4 @@
 /captures
 src/main/jniLibs/
 .cxx/
+/gradle

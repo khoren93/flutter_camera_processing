@@ -2,6 +2,7 @@ import 'dart:async';
 // import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:ffi/ffi.dart';
@@ -11,18 +12,29 @@ import 'package:flutter_beep/flutter_beep.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 import 'package:flutter_camera_processing/generated_bindings.dart';
 import 'package:flutter_camera_processing/image_converter.dart';
+import 'package:image/image.dart' as imglib;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'scanner_overlay.dart';
+
+late Directory tempDir;
+String get tempPath => '${tempDir.path}/zxing.jpg';
 
 extension Code on CodeResult {
   bool get isValidBool => isValid == 1;
   String get textString => text.cast<Utf8>().toDartString();
 
   String get formatString {
-    return _formatValues[format] ?? 'Unknown';
+    return CodeFormat.formatName(format);
   }
+}
 
-  static final _formatValues = {
+extension CodeFormat on Format {
+  static String formatName(int format) => formatNames[format] ?? 'Unknown';
+  String get name => formatNames[this] ?? 'Unknown';
+
+  static final formatNames = {
     Format.None: 'None',
     Format.Aztec: 'Aztec',
     Format.Codabar: 'CodaBar',
@@ -44,6 +56,25 @@ extension Code on CodeResult {
     Format.TwoDCodes: 'TwoD',
     Format.Any: 'Any',
   };
+
+  static final writerFormats = [
+    Format.QRCode,
+    Format.DataMatrix,
+    Format.Aztec,
+    Format.PDF417,
+    Format.Codabar,
+    Format.Code39,
+    Format.Code93,
+    Format.Code128,
+    Format.EAN8,
+    Format.EAN13,
+    Format.ITF,
+    Format.UPCA,
+    Format.UPCE,
+    // Format.DataBar,
+    // Format.DataBarExpanded,
+    // Format.MaxiCode,
+  ];
 }
 
 class ZxingPage extends StatefulWidget {
@@ -73,6 +104,8 @@ class ZxingPage extends StatefulWidget {
 class _ZxingPageState extends State<ZxingPage> {
   late List<CameraDescription> cameras;
   CameraController? controller;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _textController = TextEditingController();
 
   bool _shouldScan = false;
   bool isAndroid() => Theme.of(context).platform == TargetPlatform.android;
@@ -80,9 +113,20 @@ class _ZxingPageState extends State<ZxingPage> {
   // Result queue
   final _resultQueue = <CodeResult>[];
 
+  // Result stream
+  final _resultStream = StreamController<Uint8List>.broadcast();
+
+  final _supportedFormats = CodeFormat.writerFormats;
+  var _codeFormat = Format.QRCode;
+  var maxTextLength = 2000;
+
   @override
   void initState() {
     super.initState();
+
+    getTemporaryDirectory().then((value) {
+      tempDir = value;
+    });
 
     availableCameras().then((cameras) {
       setState(() {
@@ -197,7 +241,7 @@ class _ZxingPageState extends State<ZxingPage> {
     final cropSize =
         min(size.width, size.height) * widget.cropPercent * 2.0 * 0.8;
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Zxing Demo'),
@@ -205,6 +249,7 @@ class _ZxingPageState extends State<ZxingPage> {
             tabs: [
               Tab(text: 'Scanner'),
               Tab(text: 'Result'),
+              Tab(text: 'Writer'),
             ],
           ),
         ),
@@ -248,6 +293,116 @@ class _ZxingPageState extends State<ZxingPage> {
                   ),
                 );
               },
+            ),
+            // Writer
+            SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Format DropDown button
+                      DropdownButtonFormField<int>(
+                        value: _codeFormat,
+                        items: _supportedFormats
+                            .map((format) => DropdownMenuItem(
+                                  value: format,
+                                  child: Text(CodeFormat.formatName(format)),
+                                ))
+                            .toList(),
+                        onChanged: (format) {
+                          setState(() {
+                            _codeFormat = format ?? Format.QRCode;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Input multiline text
+                      TextFormField(
+                        controller: _textController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        maxLength: maxTextLength,
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                        validator: (value) {
+                          if (value?.isEmpty ?? false) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          hintText: 'Enter text to encode',
+                          counterText:
+                              '${_textController.value.text.length} / $maxTextLength',
+                        ),
+                      ),
+                      // Write button
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            _formKey.currentState?.save();
+                            FocusScope.of(context).unfocus();
+
+                            final text = _textController.value.text;
+                            const width = 300;
+                            const height = 300;
+                            final result = FlutterCameraProcessing.zxingEncode(
+                              text,
+                              width,
+                              height,
+                              _codeFormat,
+                              5,
+                              0,
+                            );
+                            final img =
+                                imglib.Image.fromBytes(width, height, result);
+                            final resultBytes =
+                                Uint8List.fromList(imglib.encodeJpg(img));
+                            _resultStream.add(resultBytes);
+                          }
+                        },
+                        child: const Text('Encode'),
+                      ),
+                      const SizedBox(height: 20),
+                      StreamBuilder<Uint8List>(
+                        stream: _resultStream.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Column(
+                              children: [
+                                // Barcode image
+                                Image.memory(snapshot.requireData),
+                                // Share button
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Save image to device
+                                    final file = File(tempPath);
+                                    file.writeAsBytesSync(snapshot.requireData);
+                                    final path = file.path;
+                                    // Share image
+                                    Share.shareFiles([path]);
+                                  },
+                                  child: const Text('Share'),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return Container();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

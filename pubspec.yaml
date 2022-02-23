@@ -14,9 +14,10 @@ dependencies:
   flutter_beep: ^1.0.0
   image: ^3.1.1
   path_provider: ^2.0.8
+  share_plus: ^3.1.0
 
 dev_dependencies:
-  ffigen: ^4.1.3  # dart run ffigen
+  ffigen: ^4.1.3 # dart run ffigen
   flutter_lints: ^1.0.0
   flutter_test:
     sdk: flutter
@@ -33,14 +34,15 @@ flutter:
 ffigen:
   name: GeneratedBindings
   description: Bindings to opencv and zxing.
-  output: 'lib/generated_bindings.dart'
+  output: "lib/generated_bindings.dart"
   headers:
     entry-points:
-      - 'ios/Classes/src/native_opencv.h'
-      - 'ios/Classes/src/native_zxing.h'
+      - "ios/Classes/src/native_opencv.h"
+      - "ios/Classes/src/native_zxing.h"
   # functions:
   #   include:
   #     - 'opencvVersion'
   #     - 'opencvProcessStream'
   #     - 'zxingVersion'
-  #     - 'zxingProcessStream'
+  #     - 'zxingRead'
+  #     - 'zxingEncode'

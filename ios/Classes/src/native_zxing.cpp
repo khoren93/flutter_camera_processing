@@ -1,5 +1,8 @@
 #include "common.h"
-#include "zxing/src/ReadBarcode.h"
+#include "ReadBarcode.h"
+#include "MultiFormatWriter.h"
+#include "TextUtfEncoding.h"
+#include "BitMatrix.h"
 #include "native_zxing.h"
 
 using namespace ZXing;
@@ -13,32 +16,54 @@ extern "C"
     }
 
     FUNCTION_ATTRIBUTE
-    struct CodeResult zxingProcessStream(char *bytes, int width, int height, int cropSize)
+    struct CodeResult zxingRead(char *bytes, int width, int height, int cropSize)
     {
         long long start = get_now();
 
         long length = width * height;
         uint8_t *data = new uint8_t[length];
         memcpy(data, bytes, length);
-        
+
         BarcodeFormats formats = BarcodeFormat::Any;
         // BarcodeFormats formats = BarcodeFormat::TwoDCodes;
         DecodeHints hints = DecodeHints().setTryHarder(false).setTryRotate(true).setFormats(formats);
         ImageView image{data, width, height, ImageFormat::Lum};
         ImageView cropped = image.cropped(width / 2 - cropSize / 2, height / 2 - cropSize / 2, cropSize, cropSize);
         Result result = ReadBarcode(cropped, hints);
-        
+
         struct CodeResult code = {false, nullptr};
-        if (result.isValid()) {
+        if (result.isValid())
+        {
             code.isValid = result.isValid();
             code.text = new char[result.text().length() + 1];
             std::string text = std::string(result.text().begin(), result.text().end());
             strcpy(code.text, text.c_str());
             code.format = Format(static_cast<int>(result.format()));
         }
-        
+
         int evalInMillis = static_cast<int>(get_now() - start);
         platform_log("Decode done in %dms\n", evalInMillis);
         return code;
+    }
+
+    FUNCTION_ATTRIBUTE
+    const unsigned int *zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel)
+    {
+        long long start = get_now();
+        
+        const uint32_t *result;
+        try
+        {
+            auto writer = MultiFormatWriter(BarcodeFormat(format)).setMargin(margin).setEccLevel(eccLevel);
+            result = ToMatrix<uint32_t>(writer.encode(TextUtfEncoding::FromUtf8(std::string(contents)), width, height)).data();
+        }
+        catch (const std::exception &e)
+        {
+            platform_log("Can't encode text: %s\nError: %s\n", contents, e.what());
+        }
+
+        int evalInMillis = static_cast<int>(get_now() - start);
+        platform_log("Encode done in %dms\n", evalInMillis);
+        return result;
     }
 }

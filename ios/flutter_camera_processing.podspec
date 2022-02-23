@@ -28,7 +28,7 @@ A new Flutter project.
   # telling linker to include opencv2 framework
   s.xcconfig = { 
     'OTHER_LDFLAGS' => '-framework opencv2',
-    'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
+    'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
   }
 
   # including OpenCV framework

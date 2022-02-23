@@ -23,7 +23,7 @@ add_library(
 include_directories(${ZXING_PATH})
 
 if (NOT DEFINED BUILD_WRITERS)
-    set (BUILD_WRITERS OFF)
+    set (BUILD_WRITERS ON)
 endif()
 
 if (NOT DEFINED BUILD_READERS)

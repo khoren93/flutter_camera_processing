@@ -36,8 +36,15 @@ class FlutterCameraProcessing {
 
   static CodeResult zxingProcessStream(
       Uint8List bytes, int width, int height, int cropSize) {
-    return bindings.zxingProcessStream(
-        bytes.allocatePointer(), width, height, cropSize);
+    return bindings.zxingRead(bytes.allocatePointer(), width, height, cropSize);
+  }
+
+  static Uint32List zxingEncode(String contents, int width, int height,
+      int format, int margin, int eccLevel) {
+    var result = bindings.zxingEncode(contents.toNativeUtf8().cast<Int8>(),
+        width, height, format, margin, eccLevel);
+    var result2 = result.asTypedList(width * height);
+    return result2;
   }
 }
 

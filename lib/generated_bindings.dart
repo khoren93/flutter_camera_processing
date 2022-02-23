@@ -19,6 +19,9 @@ class GeneratedBindings {
           lookup)
       : _lookup = lookup;
 
+  /// Returns the version of the opencv library.
+  ///
+  /// @return The version of the opencv library.
   ffi.Pointer<ffi.Int8> opencvVersion() {
     return _opencvVersion();
   }
@@ -29,6 +32,11 @@ class GeneratedBindings {
   late final _opencvVersion =
       _opencvVersionPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
 
+  /// @brief Processes image bytes.
+  /// @param bytes Image bytes.
+  /// @param width Image width.
+  /// @param height Image height.
+  /// @return Image bytes.
   ffi.Pointer<ffi.Uint32> opencvProcessStream(
     ffi.Pointer<ffi.Int8> bytes,
     int width,
@@ -48,6 +56,9 @@ class GeneratedBindings {
   late final _opencvProcessStream = _opencvProcessStreamPtr.asFunction<
       ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, int, int)>();
 
+  /// Returns the version of the zxing library.
+  ///
+  /// @return The version of the zxing library.
   ffi.Pointer<ffi.Int8> zxingVersion() {
     return _zxingVersion();
   }
@@ -58,13 +69,19 @@ class GeneratedBindings {
   late final _zxingVersion =
       _zxingVersionPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
 
-  CodeResult zxingProcessStream(
+  /// @brief Reads barcode from image.
+  /// @param bytes Image bytes.
+  /// @param width Image width.
+  /// @param height Image height.
+  /// @param cropSize Crop size.
+  /// @return Barcode result.
+  CodeResult zxingRead(
     ffi.Pointer<ffi.Int8> bytes,
     int width,
     int height,
     int cropSize,
   ) {
-    return _zxingProcessStream(
+    return _zxingRead(
       bytes,
       width,
       height,
@@ -72,12 +89,46 @@ class GeneratedBindings {
     );
   }
 
-  late final _zxingProcessStreamPtr = _lookup<
+  late final _zxingReadPtr = _lookup<
       ffi.NativeFunction<
           CodeResult Function(ffi.Pointer<ffi.Int8>, ffi.Int32, ffi.Int32,
-              ffi.Int32)>>('zxingProcessStream');
-  late final _zxingProcessStream = _zxingProcessStreamPtr
+              ffi.Int32)>>('zxingRead');
+  late final _zxingRead = _zxingReadPtr
       .asFunction<CodeResult Function(ffi.Pointer<ffi.Int8>, int, int, int)>();
+
+  /// @brief Encode a string into a barcode
+  /// @param contents The string to encode
+  /// @param width The width of the barcode
+  /// @param height The height of the barcode
+  /// @param format The format of the barcode
+  /// @param margin The margin of the barcode
+  /// @param eccLevel The error correction level of the barcode. Used for Aztec, PDF417, and QRCode only, [0-8].
+  /// @return The barcode as a uint32_t array
+  ffi.Pointer<ffi.Uint32> zxingEncode(
+    ffi.Pointer<ffi.Int8> contents,
+    int width,
+    int height,
+    int format,
+    int margin,
+    int eccLevel,
+  ) {
+    return _zxingEncode(
+      contents,
+      width,
+      height,
+      format,
+      margin,
+      eccLevel,
+    );
+  }
+
+  late final _zxingEncodePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32)>>('zxingEncode');
+  late final _zxingEncode = _zxingEncodePtr.asFunction<
+      ffi.Pointer<ffi.Uint32> Function(
+          ffi.Pointer<ffi.Int8>, int, int, int, int, int)>();
 }
 
 abstract class Format {

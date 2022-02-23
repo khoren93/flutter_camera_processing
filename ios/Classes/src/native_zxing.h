@@ -35,8 +35,34 @@ extern "C"
         enum Format format;
     };
 
+    /**
+     * Returns the version of the zxing library.
+     *
+     * @return The version of the zxing library.
+     */
     char *zxingVersion();
-    struct CodeResult zxingProcessStream(char *bytes, int width, int height, int cropSize);
+
+    /**
+     * @brief Reads barcode from image.
+     * @param bytes Image bytes.
+     * @param width Image width.
+     * @param height Image height.
+     * @param cropSize Crop size.
+     * @return Barcode result.
+     */
+    struct CodeResult zxingRead(char *bytes, int width, int height, int cropSize);
+
+    /**
+     * @brief Encode a string into a barcode
+     * @param contents The string to encode
+     * @param width The width of the barcode
+     * @param height The height of the barcode
+     * @param format The format of the barcode
+     * @param margin The margin of the barcode
+     * @param eccLevel The error correction level of the barcode. Used for Aztec, PDF417, and QRCode only, [0-8].
+     * @return The barcode as a uint32_t array
+     */
+    const unsigned int *zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel);
 
 #ifdef __cplusplus
 }
