@@ -1,6 +1,7 @@
 import 'dart:async';
 // import 'dart:developer';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ffi';
@@ -12,11 +13,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_beep/flutter_beep.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 import 'package:flutter_camera_processing/generated_bindings.dart';
-import 'package:flutter_camera_processing/image_converter.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'isolate_utils.dart';
 import 'scanner_overlay.dart';
 
 late Directory tempDir;
@@ -91,8 +92,8 @@ class ZxingPage extends StatefulWidget {
     this.onControllerCreated,
     this.beep = true,
     this.showCroppingRect = true,
-    this.scanFps = const Duration(milliseconds: 500),
-    this.cropPercent = 0.2, // 20%
+    this.scanDelay = const Duration(milliseconds: 500), // 500ms delay
+    this.cropPercent = 0.5, // 50% of the screen
     this.resolution = ResolutionPreset.high,
   }) : super(key: key);
 
@@ -100,7 +101,7 @@ class ZxingPage extends StatefulWidget {
   final Function(CameraController?)? onControllerCreated;
   final bool beep;
   final bool showCroppingRect;
-  final Duration scanFps;
+  final Duration scanDelay;
   final double cropPercent;
   final ResolutionPreset resolution;
 
@@ -115,7 +116,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
   TabController? _tabController;
 
-  bool _shouldScan = false;
   bool isAndroid() => Theme.of(context).platform == TargetPlatform.android;
 
   // Result queue
@@ -124,15 +124,27 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   // Result stream
   final _resultStream = StreamController<Uint8List>.broadcast();
 
+  // true when code detecting is ongoing
+  bool _isProcessing = false;
+
+  // true when the camera is active
   bool _isScanning = true;
+
+  final _maxTextLength = 2000;
   final _supportedFormats = CodeFormat.writerFormats;
   var _codeFormat = Format.QRCode;
-  var maxTextLength = 2000;
+
+  /// Instance of [IsolateUtils]
+  IsolateUtils? isolateUtils;
 
   @override
   void initState() {
     super.initState();
 
+    initStateAsync();
+  }
+
+  void initStateAsync() async {
     _tabController = TabController(length: 3, vsync: this);
     _tabController?.addListener(() {
       _isScanning = _tabController?.index == 0;
@@ -143,6 +155,10 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
       }
     });
 
+    // Spawn a new isolate
+    isolateUtils = IsolateUtils();
+    await isolateUtils?.start();
+
     getTemporaryDirectory().then((value) {
       tempDir = value;
     });
@@ -152,10 +168,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
         this.cameras = cameras;
         onNewCameraSelected(cameras.first);
       });
-    });
-
-    Timer.periodic(widget.scanFps, (timer) {
-      _shouldScan = true;
     });
 
     SystemChannels.lifecycle.setMessageHandler((message) async {
@@ -197,9 +209,7 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
 
     try {
       await controller?.initialize();
-      controller?.startImageStream((image) async {
-        processCameraImage(image);
-      });
+      controller?.startImageStream(processCameraImage);
     } on CameraException catch (e) {
       _showCameraException(e);
     }
@@ -231,34 +241,45 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   }
 
   processCameraImage(CameraImage image) async {
-    if (_shouldScan) {
-      _shouldScan = false;
+    if (!_isProcessing) {
+      _isProcessing = true;
       try {
-        final bytes = await convertImage(image);
-        final cropSize =
-            (max(image.width, image.height) * widget.cropPercent).round();
-        final result = FlutterCameraProcessing.zxingProcessStream(
-            bytes, image.width, image.height, cropSize);
+        var isolateData = IsolateData(image, widget.cropPercent);
+
+        /// perform inference in separate isolate
+        CodeResult result = await inference(isolateData);
         if (result.isValidBool) {
           FlutterBeep.beep();
           _resultQueue.add(result);
           widget.onScan(result);
           setState(() {});
+          await Future.delayed(const Duration(seconds: 1));
         }
       } on FileSystemException catch (e) {
         debugPrint(e.message);
       } catch (e) {
         debugPrint(e.toString());
       }
+      await Future.delayed(widget.scanDelay);
+      _isProcessing = false;
     }
+
     return null;
+  }
+
+  /// Runs inference in another isolate
+  Future<CodeResult> inference(IsolateData isolateData) async {
+    ReceivePort responsePort = ReceivePort();
+    isolateUtils?.sendPort
+        ?.send(isolateData..responsePort = responsePort.sendPort);
+    var results = await responsePort.first;
+    return results;
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final cropSize =
-        min(size.width, size.height) * widget.cropPercent * 2.0 * 0.8;
+    final cropSize = min(size.width, size.height) * widget.cropPercent;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zxing Demo'),
@@ -351,7 +372,7 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
                       controller: _textController,
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
-                      maxLength: maxTextLength,
+                      maxLength: _maxTextLength,
                       onChanged: (value) {
                         setState(() {});
                       },
@@ -360,7 +381,7 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
                         filled: true,
                         hintText: 'Enter text to encode',
                         counterText:
-                            '${_textController.value.text.length} / $maxTextLength',
+                            '${_textController.value.text.length} / $_maxTextLength',
                       ),
                     ),
                     // Write button

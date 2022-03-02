@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 import 'package:flutter_camera_processing/generated_bindings.dart';
@@ -91,8 +92,9 @@ class _MyAppState extends State<MyApp> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => ZxingPage(
-                      scanFps: const Duration(milliseconds: 1000),
-                      cropPercent: 0.2,
+                      scanDelay: const Duration(milliseconds: 500),
+                      resolution: ResolutionPreset.high,
+                      cropPercent: 0.5,
                       onScan: (result) {
                         onCodeScanned(result, context);
                       },
