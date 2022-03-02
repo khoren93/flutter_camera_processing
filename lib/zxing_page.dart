@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ffi';
 
 import 'package:camera/camera.dart';
 import 'package:ffi/ffi.dart';
@@ -20,6 +21,12 @@ import 'scanner_overlay.dart';
 
 late Directory tempDir;
 String get tempPath => '${tempDir.path}/zxing.jpg';
+
+extension Encode on EncodeResult {
+  bool get isValidBool => isValid == 1;
+  Uint32List get bytes => data.asTypedList(length);
+  String get errorMessage => error.cast<Utf8>().toDartString();
+}
 
 extension Code on CodeResult {
   bool get isValidBool => isValid == 1;
@@ -101,11 +108,12 @@ class ZxingPage extends StatefulWidget {
   State<ZxingPage> createState() => _ZxingPageState();
 }
 
-class _ZxingPageState extends State<ZxingPage> {
+class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   late List<CameraDescription> cameras;
   CameraController? controller;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _textController = TextEditingController();
+  TabController? _tabController;
 
   bool _shouldScan = false;
   bool isAndroid() => Theme.of(context).platform == TargetPlatform.android;
@@ -116,6 +124,7 @@ class _ZxingPageState extends State<ZxingPage> {
   // Result stream
   final _resultStream = StreamController<Uint8List>.broadcast();
 
+  bool _isScanning = true;
   final _supportedFormats = CodeFormat.writerFormats;
   var _codeFormat = Format.QRCode;
   var maxTextLength = 2000;
@@ -123,6 +132,16 @@ class _ZxingPageState extends State<ZxingPage> {
   @override
   void initState() {
     super.initState();
+
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController?.addListener(() {
+      _isScanning = _tabController?.index == 0;
+      if (_isScanning) {
+        controller?.resumePreview();
+      } else {
+        controller?.pausePreview();
+      }
+    });
 
     getTemporaryDirectory().then((value) {
       tempDir = value;
@@ -240,172 +259,187 @@ class _ZxingPageState extends State<ZxingPage> {
     final size = MediaQuery.of(context).size;
     final cropSize =
         min(size.width, size.height) * widget.cropPercent * 2.0 * 0.8;
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Zxing Demo'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Scanner'),
-              Tab(text: 'Result'),
-              Tab(text: 'Writer'),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Zxing Demo'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Scanner'),
+            Tab(text: 'Result'),
+            Tab(text: 'Writer'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // Scanner
+          Stack(
+            children: [
+              // Camera preview
+              Center(child: _cameraPreviewWidget(cropSize)),
             ],
           ),
-        ),
-        body: TabBarView(
-          children: [
-            // Scanner
-            Stack(
-              children: [
-                // Camera preview
-                Center(child: _cameraPreviewWidget(cropSize)),
-              ],
-            ),
-            // Result
-            ListView.builder(
-              itemCount: _resultQueue.length,
-              itemBuilder: (context, index) {
-                final result = _resultQueue[index];
-                return ListTile(
-                  title: Text(result.textString),
-                  subtitle: Text(result.formatString),
-                  trailing: ButtonBar(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Copy button
-                      TextButton(
-                        child: const Text('Copy'),
-                        onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: result.textString));
-                        },
+          // Result
+          _resultQueue.isEmpty
+              ? const Center(
+                  child: Text(
+                  'No Results',
+                  style: TextStyle(fontSize: 24),
+                ))
+              : ListView.builder(
+                  itemCount: _resultQueue.length,
+                  itemBuilder: (context, index) {
+                    final result = _resultQueue[index];
+                    return ListTile(
+                      title: Text(result.textString),
+                      subtitle: Text(result.formatString),
+                      trailing: ButtonBar(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Copy button
+                          TextButton(
+                            child: const Text('Copy'),
+                            onPressed: () {
+                              Clipboard.setData(
+                                  ClipboardData(text: result.textString));
+                            },
+                          ),
+                          // Remove button
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _resultQueue.removeAt(index);
+                              setState(() {});
+                            },
+                          ),
+                        ],
                       ),
-                      // Remove button
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          _resultQueue.removeAt(index);
-                          setState(() {});
-                        },
+                    );
+                  },
+                ),
+          // Writer
+          SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Format DropDown button
+                    DropdownButtonFormField<int>(
+                      value: _codeFormat,
+                      items: _supportedFormats
+                          .map((format) => DropdownMenuItem(
+                                value: format,
+                                child: Text(CodeFormat.formatName(format)),
+                              ))
+                          .toList(),
+                      onChanged: (format) {
+                        setState(() {
+                          _codeFormat = format ?? Format.QRCode;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    // Input multiline text
+                    TextFormField(
+                      controller: _textController,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      maxLength: maxTextLength,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                        hintText: 'Enter text to encode',
+                        counterText:
+                            '${_textController.value.text.length} / $maxTextLength',
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            // Writer
-            SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const SizedBox(height: 20),
-                      // Format DropDown button
-                      DropdownButtonFormField<int>(
-                        value: _codeFormat,
-                        items: _supportedFormats
-                            .map((format) => DropdownMenuItem(
-                                  value: format,
-                                  child: Text(CodeFormat.formatName(format)),
-                                ))
-                            .toList(),
-                        onChanged: (format) {
-                          setState(() {
-                            _codeFormat = format ?? Format.QRCode;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      // Input multiline text
-                      TextFormField(
-                        controller: _textController,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        maxLength: maxTextLength,
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                        validator: (value) {
-                          if (value?.isEmpty ?? false) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          filled: true,
-                          hintText: 'Enter text to encode',
-                          counterText:
-                              '${_textController.value.text.length} / $maxTextLength',
-                        ),
-                      ),
-                      // Write button
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            _formKey.currentState?.save();
-                            FocusScope.of(context).unfocus();
+                    ),
+                    // Write button
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          _formKey.currentState?.save();
+                          FocusScope.of(context).unfocus();
 
-                            final text = _textController.value.text;
-                            const width = 300;
-                            const height = 300;
-                            final result = FlutterCameraProcessing.zxingEncode(
-                              text,
-                              width,
-                              height,
-                              _codeFormat,
-                              5,
-                              0,
-                            );
-                            final img =
-                                imglib.Image.fromBytes(width, height, result);
-                            final resultBytes =
-                                Uint8List.fromList(imglib.encodeJpg(img));
-                            _resultStream.add(resultBytes);
-                          }
-                        },
-                        child: const Text('Encode'),
-                      ),
-                      const SizedBox(height: 20),
-                      StreamBuilder<Uint8List>(
-                        stream: _resultStream.stream,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return Column(
-                              children: [
-                                // Barcode image
-                                Image.memory(snapshot.requireData),
-                                // Share button
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Save image to device
-                                    final file = File(tempPath);
-                                    file.writeAsBytesSync(snapshot.requireData);
-                                    final path = file.path;
-                                    // Share image
-                                    Share.shareFiles([path]);
-                                  },
-                                  child: const Text('Share'),
-                                ),
-                              ],
-                            );
+                          final text = _textController.value.text;
+                          const width = 300;
+                          const height = 300;
+                          final result = FlutterCameraProcessing.zxingEncode(
+                              text, width, height, _codeFormat, 5, 0);
+                          String? error;
+                          if (result.isValidBool) {
+                            try {
+                              final img = imglib.Image.fromBytes(
+                                  width, height, result.bytes);
+                              final resultBytes =
+                                  Uint8List.fromList(imglib.encodeJpg(img));
+                              _resultStream.add(resultBytes);
+                            } on Exception catch (e) {
+                              error = e.toString();
+                            }
                           } else {
-                            return Container();
+                            error = result.errorMessage;
                           }
-                        },
-                      ),
-                    ],
-                  ),
+                          if (error != null) {
+                            _resultStream.addError(error);
+                            debugPrint(result.errorMessage);
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  result.errorMessage,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Encode'),
+                    ),
+                    const SizedBox(height: 20),
+                    StreamBuilder<Uint8List>(
+                      stream: _resultStream.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Column(
+                            children: [
+                              // Barcode image
+                              Image.memory(snapshot.requireData),
+                              // Share button
+                              ElevatedButton(
+                                onPressed: () {
+                                  // Save image to device
+                                  final file = File(tempPath);
+                                  file.writeAsBytesSync(snapshot.requireData);
+                                  final path = file.path;
+                                  // Share image
+                                  Share.shareFiles([path]);
+                                },
+                                child: const Text('Share'),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

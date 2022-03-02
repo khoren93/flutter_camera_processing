@@ -35,6 +35,14 @@ extern "C"
         enum Format format;
     };
 
+    struct EncodeResult
+    {
+        const unsigned int *data;
+        int length;
+        int isValid;
+        char *error;
+    };
+
     /**
      * Returns the version of the zxing library.
      *
@@ -60,9 +68,9 @@ extern "C"
      * @param format The format of the barcode
      * @param margin The margin of the barcode
      * @param eccLevel The error correction level of the barcode. Used for Aztec, PDF417, and QRCode only, [0-8].
-     * @return The barcode as a uint32_t array
+     * @return The barcode data
      */
-    const unsigned int *zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel);
+    struct EncodeResult zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel);
 
 #ifdef __cplusplus
 }

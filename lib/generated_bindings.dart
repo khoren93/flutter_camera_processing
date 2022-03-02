@@ -104,7 +104,7 @@ class GeneratedBindings {
   /// @param margin The margin of the barcode
   /// @param eccLevel The error correction level of the barcode. Used for Aztec, PDF417, and QRCode only, [0-8].
   /// @return The barcode as a uint32_t array
-  ffi.Pointer<ffi.Uint32> zxingEncode(
+  EncodeResult zxingEncode(
     ffi.Pointer<ffi.Int8> contents,
     int width,
     int height,
@@ -124,11 +124,10 @@ class GeneratedBindings {
 
   late final _zxingEncodePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32)>>('zxingEncode');
+          EncodeResult Function(ffi.Pointer<ffi.Int8>, ffi.Int32, ffi.Int32,
+              ffi.Int32, ffi.Int32, ffi.Int32)>>('zxingEncode');
   late final _zxingEncode = _zxingEncodePtr.asFunction<
-      ffi.Pointer<ffi.Uint32> Function(
-          ffi.Pointer<ffi.Int8>, int, int, int, int, int)>();
+      EncodeResult Function(ffi.Pointer<ffi.Int8>, int, int, int, int, int)>();
 }
 
 abstract class Format {
@@ -195,4 +194,16 @@ class CodeResult extends ffi.Struct {
 
   @ffi.Int32()
   external int format;
+}
+
+class EncodeResult extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint32> data;
+
+  @ffi.Int32()
+  external int length;
+
+  @ffi.Int32()
+  external int isValid;
+
+  external ffi.Pointer<ffi.Int8> error;
 }

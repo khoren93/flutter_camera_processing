@@ -42,11 +42,11 @@ SPEC CHECKSUMS:
   camera: 9993f92f2c793e87b65e35f3a23c70582afb05b1
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_beep: 54fb393b22dfa0f0e4573c81b1c74dd71c4e5af8
-  flutter_camera_processing: c42c7dbbca123c04df54befeda269c6d03fcb5c1
+  flutter_camera_processing: d46b02697d43020168795102d46c9511cd8f80d9
   path_provider_ios: 7d7ce634493af4477d156294792024ec3485acd5
   share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
 
-PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
 
 COCOAPODS: 1.11.2

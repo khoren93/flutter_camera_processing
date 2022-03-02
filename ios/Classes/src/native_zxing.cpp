@@ -47,19 +47,24 @@ extern "C"
     }
 
     FUNCTION_ATTRIBUTE
-    const unsigned int *zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel)
+    struct EncodeResult zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel)
     {
         long long start = get_now();
         
-        const uint32_t *result;
+        struct EncodeResult result = { nullptr, 0, false, nullptr };
         try
         {
             auto writer = MultiFormatWriter(BarcodeFormat(format)).setMargin(margin).setEccLevel(eccLevel);
-            result = ToMatrix<uint32_t>(writer.encode(TextUtfEncoding::FromUtf8(std::string(contents)), width, height)).data();
+            auto bitMatrix = writer.encode(TextUtfEncoding::FromUtf8(std::string(contents)), width, height);
+            result.data = ToMatrix<uint32_t>(bitMatrix).data();
+            result.length = bitMatrix.width() * bitMatrix.height();
+            result.isValid = true;
         }
         catch (const std::exception &e)
         {
             platform_log("Can't encode text: %s\nError: %s\n", contents, e.what());
+            result.error = new char[strlen(e.what()) + 1];
+            strcpy(result.error, e.what());
         }
 
         int evalInMillis = static_cast<int>(get_now() - start);
