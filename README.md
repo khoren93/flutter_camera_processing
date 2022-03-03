@@ -12,10 +12,16 @@ This Flutter plugin created to show how to use OpenCV and ZXing C++ libraries na
 
 ## Building and Running
 
-Run [init.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/init.sh) script to download the defined versions of the OpenCV and ZXing libraries and install them.
+We need download the defined versions of the OpenCV and ZXing libraries and install them.
 
+On MacOS run [init.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/init.sh)
 ```sh
 sh init.sh
+```
+
+On Windows run [init_windows.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/init_windows.sh) script
+```sh
+.\init_windows.ps1
 ```
 
 If you are downloaded the zip file from github repository, then you should rename the folder from `flutter_camera_processing_master` to `flutter_camera_processing` and run the command below. 
