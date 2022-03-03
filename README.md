@@ -19,7 +19,7 @@ On MacOS run [init.sh](https://github.com/khoren93/flutter_camera_processing/blo
 sh init.sh
 ```
 
-On Windows run [init_windows.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/init_windows.sh) script
+On Windows run [init_windows.ps1](https://github.com/khoren93/flutter_camera_processing/blob/master/init_windows.ps1) script
 ```sh
 .\init_windows.ps1
 ```
