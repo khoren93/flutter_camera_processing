@@ -62,4 +62,5 @@ Remove-Item -R "$zxingPath/ZXVersion.h.in"
 Write-Output "ZXing $zxing_version has been successfully installed"
 
 # remove the downloaded files
-Remove-Item -R ../download
+Set-Location ..
+Remove-Item -R download
