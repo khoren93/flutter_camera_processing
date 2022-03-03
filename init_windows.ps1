@@ -30,15 +30,15 @@ Remove-Item -R "$opencvIncludePath/include"
 Remove-Item -R "$opencvJNIPath"
 
 # copy opencv to ios project
-Copy-Item -R opencv2.framework "$opencvIOSPath"
+Copy-Item -R "opencv-$opencv_version-ios-framework/opencv2.framework" "$opencvIOSPath"
 
 # print success message for ios
 Write-Output "OpenCV $opencv_version for iOS has been successfully installed"
 
 # copy opencv to android project
-Copy-Item -R OpenCV-android-sdk/sdk/native/jni/include "$opencvIncludePath"
+Copy-Item -R "opencv-$opencv_version-android-sdk/OpenCV-android-sdk/sdk/native/jni/include" "$opencvIncludePath"
 mkdir -p "$opencvJNIPath"
-Copy-Item -R OpenCV-android-sdk/sdk/native/libs/* "$opencvJNIPath"
+Copy-Item -R "opencv-$opencv_version-android-sdk/OpenCV-android-sdk/sdk/native/libs/*" "$opencvJNIPath"
 
 # print success message for android
 Write-Output "OpenCV $opencv_version for Android has been successfully installed"
@@ -51,7 +51,7 @@ Expand-Archive "zxing-cpp-$zxing_version.zip"
 Remove-Item -R "$zxingPath"
 
 # copy zxing
-Copy-Item -R "zxing-cpp-$zxing_version/core/" "$zxingPath"
+Copy-Item -R "zxing-cpp-$zxing_version/zxing-cpp-$zxing_version/core/" "$zxingPath"
 
 # remove unneeded zxing files
 Remove-Item -R "$zxingPath/CMakeLists.txt"
