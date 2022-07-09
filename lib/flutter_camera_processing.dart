@@ -26,7 +26,7 @@ class FlutterCameraProcessing {
   static Uint32List opencvProcessStream(
       Uint8List bytes, int width, int height) {
     return bindings
-        .opencvProcessStream(bytes.allocatePointer(), width, height)
+        .opencvProcessStream(bytes.allocatePointer(), width, height).cast<Uint32>()
         .asTypedList(width * height);
   }
 
@@ -41,7 +41,7 @@ class FlutterCameraProcessing {
 
   static EncodeResult zxingEncode(String contents, int width, int height,
       int format, int margin, int eccLevel) {
-    var result = bindings.zxingEncode(contents.toNativeUtf8().cast<Int8>(),
+    var result = bindings.zxingEncode(contents.toNativeUtf8().cast<Char>(),
         width, height, format, margin, eccLevel);
     // var result2 = result.asTypedList(width * height);
     return result;
@@ -62,10 +62,10 @@ DynamicLibrary dylib = _openDynamicLibrary();
 
 extension Uint8ListBlobConversion on Uint8List {
   /// Allocates a pointer filled with the Uint8List data.
-  Pointer<Int8> allocatePointer() {
-    final blob = calloc<Int8>(length);
-    final blobBytes = blob.asTypedList(length);
+  Pointer<Char> allocatePointer() {
+    final Pointer<Int8> blob = calloc<Int8>(length);
+    final Int8List blobBytes = blob.asTypedList(length);
     blobBytes.setAll(0, this);
-    return blob;
+    return blob.cast<Char>();
   }
 }

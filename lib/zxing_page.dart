@@ -10,7 +10,6 @@ import 'package:camera/camera.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_beep/flutter_beep.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 import 'package:flutter_camera_processing/generated_bindings.dart';
 import 'package:image/image.dart' as imglib;
@@ -25,7 +24,7 @@ String get tempPath => '${tempDir.path}/zxing.jpg';
 
 extension Encode on EncodeResult {
   bool get isValidBool => isValid == 1;
-  Uint32List get bytes => data.asTypedList(length);
+  Uint32List get bytes => data.cast<Uint32>().asTypedList(length);
   String get errorMessage => error.cast<Utf8>().toDartString();
 }
 
@@ -249,7 +248,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
         /// perform inference in separate isolate
         CodeResult result = await inference(isolateData);
         if (result.isValidBool) {
-          FlutterBeep.beep();
           _resultQueue.add(result);
           widget.onScan(result);
           setState(() {});

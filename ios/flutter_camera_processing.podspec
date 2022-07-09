@@ -13,8 +13,7 @@ A new Flutter project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  # s.source_files = 'Classes/**/*'
-  s.source_files = 'Classes/**'
+  s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '10.0'
 
@@ -40,4 +39,6 @@ A new Flutter project.
   # including C++ library
   s.library = 'c++'
 
+  # module_map is needed so this module can be used as a framework
+  s.module_map = 'flutter_camera_processing.modulemap'
 end

@@ -45,12 +45,15 @@ set (COMMON_FILES
     ${ZXING_PATH}/ByteArray.h
     ${ZXING_PATH}/ByteMatrix.h
     ${ZXING_PATH}/CharacterSet.h
+    ${ZXING_PATH}/CharacterSet.cpp
     ${ZXING_PATH}/CharacterSetECI.h
-    ${ZXING_PATH}/CharacterSetECI.cpp
     ${ZXING_PATH}/ConcentricFinder.h
     ${ZXING_PATH}/ConcentricFinder.cpp
     ${ZXING_PATH}/CustomData.h
+    ${ZXING_PATH}/ECI.h
+    ${ZXING_PATH}/ECI.cpp
     ${ZXING_PATH}/Flags.h
+    ${ZXING_PATH}/Generator.h
     ${ZXING_PATH}/GenericGF.h
     ${ZXING_PATH}/GenericGF.cpp
     ${ZXING_PATH}/GenericGFPoly.h
@@ -67,11 +70,11 @@ set (COMMON_FILES
     ${ZXING_PATH}/TextUtfEncoding.h
     ${ZXING_PATH}/TextUtfEncoding.cpp
     ${ZXING_PATH}/TritMatrix.h
+    ${ZXING_PATH}/ZXAlgorithms.h
     ${ZXING_PATH}/ZXBigInteger.h
     ${ZXING_PATH}/ZXBigInteger.cpp
     ${ZXING_PATH}/ZXConfig.h
     ${ZXING_PATH}/ZXNullable.h
-    ${ZXING_PATH}/ZXContainerAlgorithms.h
     ${ZXING_PATH}/ZXTestSupport.h
 )
 if (BUILD_READERS)
@@ -80,22 +83,24 @@ if (BUILD_READERS)
         ${ZXING_PATH}/BinaryBitmap.cpp
         ${ZXING_PATH}/BitSource.h
         ${ZXING_PATH}/BitSource.cpp
+        ${ZXING_PATH}/Content.h
+        ${ZXING_PATH}/Content.cpp
         ${ZXING_PATH}/DecodeHints.h
         ${ZXING_PATH}/DecodeHints.cpp
         ${ZXING_PATH}/DecodeStatus.h
         ${ZXING_PATH}/DecodeStatus.cpp
         ${ZXING_PATH}/DecoderResult.h
         ${ZXING_PATH}/DetectorResult.h
-        ${ZXING_PATH}/GenericLuminanceSource.h
-        ${ZXING_PATH}/GenericLuminanceSource.cpp
+        ${ZXING_PATH}/Error.h
         ${ZXING_PATH}/GlobalHistogramBinarizer.h
         ${ZXING_PATH}/GlobalHistogramBinarizer.cpp
         ${ZXING_PATH}/GridSampler.h
         ${ZXING_PATH}/GridSampler.cpp
+        ${ZXING_PATH}/GS1.h
+        ${ZXING_PATH}/GS1.cpp
         ${ZXING_PATH}/HybridBinarizer.h
         ${ZXING_PATH}/HybridBinarizer.cpp
-        ${ZXING_PATH}/LuminanceSource.h
-        ${ZXING_PATH}/LuminanceSource.cpp
+        ${ZXING_PATH}/ImageView.h
         ${ZXING_PATH}/MultiFormatReader.h
         ${ZXING_PATH}/MultiFormatReader.cpp
         ${ZXING_PATH}/PerspectiveTransform.h
@@ -107,8 +112,6 @@ if (BUILD_READERS)
         ${ZXING_PATH}/ReedSolomonDecoder.cpp
         ${ZXING_PATH}/Result.h
         ${ZXING_PATH}/Result.cpp
-        ${ZXING_PATH}/ResultMetadata.h
-        ${ZXING_PATH}/ResultMetadata.cpp
         ${ZXING_PATH}/ResultPoint.h
         ${ZXING_PATH}/ResultPoint.cpp
         ${ZXING_PATH}/TextDecoder.h
@@ -130,6 +133,42 @@ if (BUILD_WRITERS)
     )
 endif()
 
+# define subset of public headers that get distributed with the binaries
+set (PUBLIC_HEADERS
+    ${ZXING_PATH}/BarcodeFormat.h
+    ${ZXING_PATH}/BitHacks.h
+    ${ZXING_PATH}/ByteArray.h
+    ${ZXING_PATH}/CharacterSet.h
+    ${ZXING_PATH}/CharacterSetECI.h # deprecated
+    ${ZXING_PATH}/Flags.h
+    ${ZXING_PATH}/GTIN.h
+    ${ZXING_PATH}/TextUtfEncoding.h
+    ${ZXING_PATH}/ZXAlgorithms.h
+    ${ZXING_PATH}/ZXConfig.h
+)
+if (BUILD_READERS)
+    set (PUBLIC_HEADERS ${PUBLIC_HEADERS}
+        ${ZXING_PATH}/Content.h
+        ${ZXING_PATH}/DecodeHints.h
+        ${ZXING_PATH}/DecodeStatus.h
+        ${ZXING_PATH}/Error.h
+        ${ZXING_PATH}/ImageView.h
+        ${ZXING_PATH}/Point.h
+        ${ZXING_PATH}/Quadrilateral.h
+        ${ZXING_PATH}/ReadBarcode.h
+        ${ZXING_PATH}/Result.h
+        ${ZXING_PATH}/StructuredAppend.h
+    )
+endif()
+if (BUILD_WRITERS)
+    set (PUBLIC_HEADERS ${PUBLIC_HEADERS}
+        ${ZXING_PATH}/BitMatrix.h
+        ${ZXING_PATH}/BitMatrixIO.h
+        ${ZXING_PATH}/Matrix.h
+        ${ZXING_PATH}/MultiFormatWriter.h
+    )
+endif()
+# end of public header set
 
 set (AZTEC_FILES
 )
@@ -162,6 +201,8 @@ endif()
 set (DATAMATRIX_FILES
     ${ZXING_PATH}/datamatrix/DMBitLayout.h
     ${ZXING_PATH}/datamatrix/DMBitLayout.cpp
+    ${ZXING_PATH}/datamatrix/DMVersion.h
+    ${ZXING_PATH}/datamatrix/DMVersion.cpp
 )
 if (BUILD_READERS)
     set (DATAMATRIX_FILES ${DATAMATRIX_FILES}
@@ -171,8 +212,6 @@ if (BUILD_READERS)
         ${ZXING_PATH}/datamatrix/DMDecoder.cpp
         ${ZXING_PATH}/datamatrix/DMDetector.h
         ${ZXING_PATH}/datamatrix/DMDetector.cpp
-        ${ZXING_PATH}/datamatrix/DMVersion.h
-        ${ZXING_PATH}/datamatrix/DMVersion.cpp
         ${ZXING_PATH}/datamatrix/DMReader.h
         ${ZXING_PATH}/datamatrix/DMReader.cpp
     )
@@ -227,6 +266,8 @@ if (BUILD_READERS)
         ${ZXING_PATH}/oned/ODDataBarCommon.cpp
         ${ZXING_PATH}/oned/ODDataBarReader.h
         ${ZXING_PATH}/oned/ODDataBarReader.cpp
+        ${ZXING_PATH}/oned/ODDataBarExpandedBitDecoder.h
+        ${ZXING_PATH}/oned/ODDataBarExpandedBitDecoder.cpp
         ${ZXING_PATH}/oned/ODDataBarExpandedReader.h
         ${ZXING_PATH}/oned/ODDataBarExpandedReader.cpp
         ${ZXING_PATH}/oned/ODITFReader.h
@@ -261,20 +302,6 @@ if (BUILD_WRITERS)
         ${ZXING_PATH}/oned/ODUPCAWriter.cpp
         ${ZXING_PATH}/oned/ODWriterHelper.h
         ${ZXING_PATH}/oned/ODWriterHelper.cpp
-    )
-endif()
-
-
-set (ONED_RSS_FILES
-)
-if (BUILD_READERS)
-    set (ONED_RSS_FILES ${ONED_RSS_FILES}
-        ${ZXING_PATH}/oned/rss/ODRSSExpandedBinaryDecoder.h
-        ${ZXING_PATH}/oned/rss/ODRSSExpandedBinaryDecoder.cpp
-        ${ZXING_PATH}/oned/rss/ODRSSFieldParser.h
-        ${ZXING_PATH}/oned/rss/ODRSSFieldParser.cpp
-        ${ZXING_PATH}/oned/rss/ODRSSGenericAppIdDecoder.h
-        ${ZXING_PATH}/oned/rss/ODRSSGenericAppIdDecoder.cpp
     )
 endif()
 
@@ -340,7 +367,6 @@ if (BUILD_READERS)
         ${ZXING_PATH}/qrcode/QRDataMask.h
         ${ZXING_PATH}/qrcode/QRDecoder.h
         ${ZXING_PATH}/qrcode/QRDecoder.cpp
-        ${ZXING_PATH}/qrcode/QRDecoderMetadata.h
         ${ZXING_PATH}/qrcode/QRDetector.h
         ${ZXING_PATH}/qrcode/QRDetector.cpp
         ${ZXING_PATH}/qrcode/QRECB.h
@@ -402,7 +428,6 @@ add_library (ZXing
     ${DATAMATRIX_FILES}
     ${MAXICODE_FILES}
     ${ONED_FILES}
-    ${ONED_RSS_FILES}
     ${PDF417_FILES}
     ${QRCODE_FILES}
     ${TEXT_CODEC_FILES}

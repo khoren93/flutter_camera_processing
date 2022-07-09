@@ -22,23 +22,23 @@ class GeneratedBindings {
   /// Returns the version of the opencv library.
   ///
   /// @return The version of the opencv library.
-  ffi.Pointer<ffi.Int8> opencvVersion() {
+  ffi.Pointer<ffi.Char> opencvVersion() {
     return _opencvVersion();
   }
 
   late final _opencvVersionPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Int8> Function()>>(
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
           'opencvVersion');
   late final _opencvVersion =
-      _opencvVersionPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
+      _opencvVersionPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   /// @brief Processes image bytes.
   /// @param bytes Image bytes.
   /// @param width Image width.
   /// @param height Image height.
   /// @return Image bytes.
-  ffi.Pointer<ffi.Uint32> opencvProcessStream(
-    ffi.Pointer<ffi.Int8> bytes,
+  ffi.Pointer<ffi.UnsignedInt> opencvProcessStream(
+    ffi.Pointer<ffi.Char> bytes,
     int width,
     int height,
   ) {
@@ -51,23 +51,23 @@ class GeneratedBindings {
 
   late final _opencvProcessStreamPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Int32)>>('opencvProcessStream');
+          ffi.Pointer<ffi.UnsignedInt> Function(
+              ffi.Pointer<ffi.Char>, ffi.Int, ffi.Int)>>('opencvProcessStream');
   late final _opencvProcessStream = _opencvProcessStreamPtr.asFunction<
-      ffi.Pointer<ffi.Uint32> Function(ffi.Pointer<ffi.Int8>, int, int)>();
+      ffi.Pointer<ffi.UnsignedInt> Function(ffi.Pointer<ffi.Char>, int, int)>();
 
   /// Returns the version of the zxing library.
   ///
   /// @return The version of the zxing library.
-  ffi.Pointer<ffi.Int8> zxingVersion() {
+  ffi.Pointer<ffi.Char> zxingVersion() {
     return _zxingVersion();
   }
 
   late final _zxingVersionPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Int8> Function()>>(
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
           'zxingVersion');
   late final _zxingVersion =
-      _zxingVersionPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
+      _zxingVersionPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   /// @brief Reads barcode from image.
   /// @param bytes Image bytes.
@@ -76,7 +76,7 @@ class GeneratedBindings {
   /// @param cropSize Crop size.
   /// @return Barcode result.
   CodeResult zxingRead(
-    ffi.Pointer<ffi.Int8> bytes,
+    ffi.Pointer<ffi.Char> bytes,
     int width,
     int height,
     int cropSize,
@@ -91,10 +91,10 @@ class GeneratedBindings {
 
   late final _zxingReadPtr = _lookup<
       ffi.NativeFunction<
-          CodeResult Function(ffi.Pointer<ffi.Int8>, ffi.Int32, ffi.Int32,
-              ffi.Int32)>>('zxingRead');
+          CodeResult Function(
+              ffi.Pointer<ffi.Char>, ffi.Int, ffi.Int, ffi.Int)>>('zxingRead');
   late final _zxingRead = _zxingReadPtr
-      .asFunction<CodeResult Function(ffi.Pointer<ffi.Int8>, int, int, int)>();
+      .asFunction<CodeResult Function(ffi.Pointer<ffi.Char>, int, int, int)>();
 
   /// @brief Encode a string into a barcode
   /// @param contents The string to encode
@@ -103,9 +103,9 @@ class GeneratedBindings {
   /// @param format The format of the barcode
   /// @param margin The margin of the barcode
   /// @param eccLevel The error correction level of the barcode. Used for Aztec, PDF417, and QRCode only, [0-8].
-  /// @return The barcode as a uint32_t array
+  /// @return The barcode data
   EncodeResult zxingEncode(
-    ffi.Pointer<ffi.Int8> contents,
+    ffi.Pointer<ffi.Char> contents,
     int width,
     int height,
     int format,
@@ -124,10 +124,10 @@ class GeneratedBindings {
 
   late final _zxingEncodePtr = _lookup<
       ffi.NativeFunction<
-          EncodeResult Function(ffi.Pointer<ffi.Int8>, ffi.Int32, ffi.Int32,
-              ffi.Int32, ffi.Int32, ffi.Int32)>>('zxingEncode');
+          EncodeResult Function(ffi.Pointer<ffi.Char>, ffi.Int, ffi.Int,
+              ffi.Int, ffi.Int, ffi.Int)>>('zxingEncode');
   late final _zxingEncode = _zxingEncodePtr.asFunction<
-      EncodeResult Function(ffi.Pointer<ffi.Int8>, int, int, int, int, int)>();
+      EncodeResult Function(ffi.Pointer<ffi.Char>, int, int, int, int, int)>();
 }
 
 abstract class Format {
@@ -187,23 +187,23 @@ abstract class Format {
 }
 
 class CodeResult extends ffi.Struct {
-  @ffi.Int32()
+  @ffi.Int()
   external int isValid;
 
-  external ffi.Pointer<ffi.Int8> text;
+  external ffi.Pointer<ffi.Char> text;
 
   @ffi.Int32()
   external int format;
 }
 
 class EncodeResult extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint32> data;
+  external ffi.Pointer<ffi.UnsignedInt> data;
 
-  @ffi.Int32()
+  @ffi.Int()
   external int length;
 
-  @ffi.Int32()
+  @ffi.Int()
   external int isValid;
 
-  external ffi.Pointer<ffi.Int8> error;
+  external ffi.Pointer<ffi.Char> error;
 }

@@ -7,17 +7,16 @@ environment:
   flutter: ">=2.10.0"
 
 dependencies:
-  camera: ^0.9.6
-  ffi: ^1.2.1
+  camera: ^0.9.8
+  ffi: ^2.0.1
   flutter:
     sdk: flutter
-  flutter_beep: ^1.0.0
   image: ^3.2.0
-  path_provider: ^2.0.10
-  share_plus: ^4.0.4
+  path_provider: ^2.0.11
+  share_plus: ^4.0.10
 
 dev_dependencies:
-  ffigen: ^5.0.0 # dart run ffigen
+  ffigen: ^6.0.1 # dart run ffigen
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter

@@ -5,6 +5,10 @@
 #include "BitMatrix.h"
 #include "native_zxing.h"
 
+#include <locale>
+#include <codecvt>
+#include <stdarg.h>
+
 using namespace ZXing;
 
 extern "C"
@@ -12,7 +16,7 @@ extern "C"
     FUNCTION_ATTRIBUTE
     char *zxingVersion()
     {
-        return "1.2.0";
+        return "1.4.0";
     }
 
     FUNCTION_ATTRIBUTE
@@ -35,9 +39,12 @@ extern "C"
         if (result.isValid())
         {
             code.isValid = result.isValid();
-            code.text = new char[result.text().length() + 1];
-            std::string text = std::string(result.text().begin(), result.text().end());
+
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+            std::string text = converter.to_bytes(result.text());
+            code.text = new char[text.length() + 1];
             strcpy(code.text, text.c_str());
+
             code.format = Format(static_cast<int>(result.format()));
         }
 
@@ -50,8 +57,8 @@ extern "C"
     struct EncodeResult zxingEncode(char *contents, int width, int height, int format, int margin, int eccLevel)
     {
         long long start = get_now();
-        
-        struct EncodeResult result = { nullptr, 0, false, nullptr };
+
+        struct EncodeResult result = {nullptr, 0, false, nullptr};
         try
         {
             auto writer = MultiFormatWriter(BarcodeFormat(format)).setMargin(margin).setEccLevel(eccLevel);

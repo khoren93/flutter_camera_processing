@@ -2,8 +2,8 @@
 project="flutter_camera_processing"
 
 # Define the versions to download
-opencv_version="4.5.5"
-zxing_version="1.2.0"
+opencv_version="4.6.0"
+zxing_version="1.4.0"
 
 # Define the paths to the directories where the files will be installed
 projectPath="../../$project"
