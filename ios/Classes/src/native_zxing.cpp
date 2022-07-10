@@ -29,7 +29,6 @@ extern "C"
         memcpy(data, bytes, length);
 
         BarcodeFormats formats = BarcodeFormat::Any;
-        // BarcodeFormats formats = BarcodeFormat::TwoDCodes;
         DecodeHints hints = DecodeHints().setTryHarder(false).setTryRotate(true).setFormats(formats);
         ImageView image{data, width, height, ImageFormat::Lum};
         ImageView cropped = image.cropped(width / 2 - cropSize / 2, height / 2 - cropSize / 2, cropSize, cropSize);

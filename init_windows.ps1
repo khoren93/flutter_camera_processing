@@ -53,11 +53,6 @@ Remove-Item -R "$zxingPath"
 # copy zxing
 Copy-Item -R "zxing-cpp-$zxing_version/zxing-cpp-$zxing_version/core/" "$zxingPath"
 
-# remove unneeded zxing files
-Remove-Item -R "$zxingPath/CMakeLists.txt"
-Remove-Item -R "$zxingPath/ZXingConfig.cmake.in"
-Remove-Item -R "$zxingPath/ZXVersion.h.in"
-
 # print success message for zxing
 Write-Output "ZXing $zxing_version has been successfully installed"
 
