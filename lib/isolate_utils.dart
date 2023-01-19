@@ -1,40 +1,51 @@
 import 'dart:isolate';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 
 import 'flutter_camera_processing.dart';
 import 'image_converter.dart';
+import 'package:image/image.dart' as imglib;
 
 // Inspired from https://github.com/am15h/object_detection_flutter
 
 /// Bundles data to pass between Isolate
-class IsolateData {
+class ZxingIsolateData {
   CameraImage cameraImage;
   double cropPercent;
 
   SendPort? responsePort;
 
-  IsolateData(
+  ZxingIsolateData(
     this.cameraImage,
     this.cropPercent,
   );
 }
 
+class OpenCVIsolateData {
+  CameraImage cameraImage;
+
+  SendPort? responsePort;
+
+  OpenCVIsolateData(
+    this.cameraImage,
+  );
+}
+
 /// Manages separate Isolate instance for inference
 class IsolateUtils {
-  static const String kDebugName = "InferenceIsolate";
+  static const String kDebugName = "IsolateProcessing";
 
-  // ignore: unused_field
   Isolate? _isolate;
   final _receivePort = ReceivePort();
   SendPort? _sendPort;
 
   SendPort? get sendPort => _sendPort;
 
-  Future<void> start() async {
+  Future<void> startIsolateProcessing() async {
     _isolate = await Isolate.spawn<SendPort>(
-      entryPoint,
+      processingEntryPoint,
       _receivePort.sendPort,
       debugName: kDebugName,
     );
@@ -42,12 +53,18 @@ class IsolateUtils {
     _sendPort = await _receivePort.first;
   }
 
-  static void entryPoint(SendPort sendPort) async {
+  void stopIsolateProcessing() {
+    _isolate?.kill(priority: Isolate.immediate);
+    _isolate = null;
+    _sendPort = null;
+  }
+
+  static void processingEntryPoint(SendPort sendPort) async {
     final port = ReceivePort();
     sendPort.send(port.sendPort);
 
-    await for (final IsolateData? isolateData in port) {
-      if (isolateData != null) {
+    await for (final isolateData in port) {
+      if (isolateData is ZxingIsolateData) {
         final image = isolateData.cameraImage;
         final cropPercent = isolateData.cropPercent;
         final bytes = await convertImage(image);
@@ -55,6 +72,15 @@ class IsolateUtils {
         final result = FlutterCameraProcessing.zxingProcessStream(
             bytes, image.width, image.height, cropSize);
         isolateData.responsePort?.send(result);
+      }
+      if (isolateData is OpenCVIsolateData) {
+        final image = isolateData.cameraImage;
+        final bytes = await convertImage(image);
+        final result = FlutterCameraProcessing.opencvProcessStream(
+            bytes, image.width, image.height);
+        final img = imglib.Image.fromBytes(image.width, image.height, result);
+        final resultBytes = Uint32List.fromList(imglib.encodeJpg(img));
+        isolateData.responsePort?.send(resultBytes);
       }
     }
   }

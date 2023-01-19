@@ -133,9 +133,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   final _supportedFormats = CodeFormat.writerFormats;
   var _codeFormat = Format.QRCode;
 
-  /// Instance of [IsolateUtils]
-  IsolateUtils? isolateUtils;
-
   @override
   void initState() {
     super.initState();
@@ -144,6 +141,8 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   }
 
   void initStateAsync() async {
+    FlutterCameraProcessing.startCameraProcessing();
+
     _tabController = TabController(length: 3, vsync: this);
     _tabController?.addListener(() {
       _isScanning = _tabController?.index == 0;
@@ -153,10 +152,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
         controller?.pausePreview();
       }
     });
-
-    // Spawn a new isolate
-    isolateUtils = IsolateUtils();
-    await isolateUtils?.start();
 
     getTemporaryDirectory().then((value) {
       tempDir = value;
@@ -190,6 +185,7 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
+    FlutterCameraProcessing.stopCameraProcessing();
     controller?.dispose();
   }
 
@@ -243,10 +239,12 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
     if (!_isProcessing) {
       _isProcessing = true;
       try {
-        var isolateData = IsolateData(image, widget.cropPercent);
-
         /// perform inference in separate isolate
-        CodeResult result = await inference(isolateData);
+        CodeResult result =
+            await FlutterCameraProcessing.zxingProcessCameraImage(
+          image,
+          widget.cropPercent,
+        );
         if (result.isValidBool) {
           _resultQueue.add(result);
           widget.onScan(result);
@@ -263,15 +261,6 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
     }
 
     return null;
-  }
-
-  /// Runs inference in another isolate
-  Future<CodeResult> inference(IsolateData isolateData) async {
-    ReceivePort responsePort = ReceivePort();
-    isolateUtils?.sendPort
-        ?.send(isolateData..responsePort = responsePort.sendPort);
-    var results = await responsePort.first;
-    return results;
   }
 
   @override

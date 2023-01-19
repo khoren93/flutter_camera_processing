@@ -7,8 +7,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
-import 'package:flutter_camera_processing/image_converter.dart';
-import 'package:image/image.dart' as imglib;
 
 class OpencvPage extends StatefulWidget {
   const OpencvPage({
@@ -30,7 +28,7 @@ class _OpencvPageState extends State<OpencvPage> {
   late List<CameraDescription> cameras;
   CameraController? controller;
 
-  bool _shouldScan = false;
+  bool _isProcessing = false;
 
   final resultStream = StreamController<Uint8List>.broadcast();
 
@@ -40,15 +38,13 @@ class _OpencvPageState extends State<OpencvPage> {
   void initState() {
     super.initState();
 
+    FlutterCameraProcessing.startCameraProcessing();
+
     availableCameras().then((cameras) {
       setState(() {
         this.cameras = cameras;
         onNewCameraSelected(cameras.first);
       });
-    });
-
-    Timer.periodic(widget.scanFps, (timer) {
-      _shouldScan = true;
     });
 
     SystemChannels.lifecycle.setMessageHandler((message) async {
@@ -72,6 +68,7 @@ class _OpencvPageState extends State<OpencvPage> {
   @override
   void dispose() {
     super.dispose();
+    FlutterCameraProcessing.stopCameraProcessing();
     controller?.dispose();
   }
 
@@ -124,23 +121,19 @@ class _OpencvPageState extends State<OpencvPage> {
   }
 
   processCameraImage(CameraImage image) async {
-    if (_shouldScan) {
-      _shouldScan = false;
+    if (!_isProcessing) {
+      _isProcessing = true;
       try {
-        final bytes = await convertImage(image);
-        final result = FlutterCameraProcessing.opencvProcessStream(
-          bytes,
-          image.width,
-          image.height,
-        );
-        final img = imglib.Image.fromBytes(image.width, image.height, result);
-        final resultBytes = Uint8List.fromList(imglib.encodeJpg(img));
-        resultStream.add(resultBytes);
+        final result =
+            await FlutterCameraProcessing.opencvProcessCameraImage(image);
+        if (result == null) return;
+        resultStream.add(Uint8List.fromList(result));
       } on FileSystemException catch (e) {
         debugPrint(e.message);
       } catch (e) {
         debugPrint(e.toString());
       }
+      _isProcessing = false;
     }
     return null;
   }
@@ -166,7 +159,7 @@ class _OpencvPageState extends State<OpencvPage> {
                 if (snapshot.hasData) {
                   return Center(
                     child: RotatedBox(
-                      quarterTurns: isAndroid() ? 0 : 0,
+                      quarterTurns: 0,
                       child: Image.memory(
                         snapshot.requireData,
                         width: size.width / 2,

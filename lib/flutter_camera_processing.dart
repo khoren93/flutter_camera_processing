@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
 import 'generated_bindings.dart';
+import 'isolate_utils.dart';
 
 class FlutterCameraProcessing {
   static const MethodChannel _channel =
@@ -19,32 +22,52 @@ class FlutterCameraProcessing {
 
   static final bindings = GeneratedBindings(dylib);
 
-  static String opencvVersion() {
-    return bindings.opencvVersion().cast<Utf8>().toDartString();
+  static IsolateUtils? isolateUtils;
+
+  static Future<void> startCameraProcessing() async {
+    isolateUtils = IsolateUtils();
+    await isolateUtils?.startIsolateProcessing();
   }
+
+  static void stopCameraProcessing() => isolateUtils?.stopIsolateProcessing();
+
+  static String opencvVersion() =>
+      bindings.opencvVersion().cast<Utf8>().toDartString();
+
+  static Future<Uint32List?> opencvProcessCameraImage(
+          CameraImage image) async =>
+      await _inference(OpenCVIsolateData(image));
 
   static Uint32List opencvProcessStream(
-      Uint8List bytes, int width, int height) {
-    return bindings
-        .opencvProcessStream(bytes.allocatePointer(), width, height).cast<Uint32>()
-        .asTypedList(width * height);
-  }
+          Uint8List bytes, int width, int height) =>
+      Uint32List.fromList(bindings
+          .opencvProcessStream(bytes.allocatePointer(), width, height)
+          .cast<Int8>()
+          .asTypedList(width * height));
 
-  static String zxingVersion() {
-    return bindings.zxingVersion().cast<Utf8>().toDartString();
-  }
+  static String zxingVersion() =>
+      bindings.zxingVersion().cast<Utf8>().toDartString();
 
   static CodeResult zxingProcessStream(
-      Uint8List bytes, int width, int height, int cropSize) {
-    return bindings.zxingRead(bytes.allocatePointer(), width, height, cropSize);
-  }
+          Uint8List bytes, int width, int height, int cropSize) =>
+      bindings.zxingRead(bytes.allocatePointer(), width, height, cropSize);
 
   static EncodeResult zxingEncode(String contents, int width, int height,
-      int format, int margin, int eccLevel) {
-    var result = bindings.zxingEncode(contents.toNativeUtf8().cast<Char>(),
-        width, height, format, margin, eccLevel);
-    // var result2 = result.asTypedList(width * height);
-    return result;
+          int format, int margin, int eccLevel) =>
+      bindings.zxingEncode(contents.toNativeUtf8().cast<Char>(), width, height,
+          format, margin, eccLevel);
+
+  static Future<CodeResult> zxingProcessCameraImage(
+          CameraImage image, double cropPercent) async =>
+      await _inference(ZxingIsolateData(image, cropPercent));
+
+  /// Runs inference in another isolate
+  static Future<dynamic> _inference(dynamic isolateData) async {
+    final ReceivePort responsePort = ReceivePort();
+    isolateUtils?.sendPort
+        ?.send(isolateData..responsePort = responsePort.sendPort);
+    final dynamic results = await responsePort.first;
+    return results;
   }
 }
 

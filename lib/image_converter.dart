@@ -10,8 +10,9 @@ Future<Uint8List> convertImage(CameraImage image) async {
   try {
     late imglib.Image img;
     if (image.format.group == ImageFormatGroup.yuv420) {
-      // img = convertYUV420(image);
-      return image.planes.first.bytes;
+      img = convertYUV420(image);
+      return img.getBytes(
+          format: imglib.Format.luminance); //image.planes.first.bytes;
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
       img = convertBGRA8888(image);
     }
