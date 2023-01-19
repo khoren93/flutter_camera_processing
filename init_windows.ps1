@@ -2,8 +2,8 @@
 Set-Variable project "flutter_camera_processing"
 
 # Define the versions to download
-Set-Variable opencv_version "4.6.0"
-Set-Variable zxing_version "1.4.0"
+Set-Variable opencv_version "4.7.0"
+Set-Variable zxing_version "2.0.0"
 
 # Define the paths to the directories where the files will be installed
 Set-Variable projectPath "../../$project"
@@ -51,7 +51,7 @@ Expand-Archive "zxing-cpp-$zxing_version.zip"
 Remove-Item -R "$zxingPath"
 
 # copy zxing
-Copy-Item -R "zxing-cpp-$zxing_version/zxing-cpp-$zxing_version/core/" "$zxingPath"
+Copy-Item -R "zxing-cpp-$zxing_version/zxing-cpp-$zxing_version/" "$zxingPath"
 
 # print success message for zxing
 Write-Output "ZXing $zxing_version has been successfully installed"
