@@ -8,9 +8,9 @@ Set-Variable zxing_version "1.4.0"
 # Define the paths to the directories where the files will be installed
 Set-Variable projectPath "../../$project"
 Set-Variable opencvIOSPath "$projectPath/ios"
-Set-Variable opencvIncludePath "$projectPath"
+Set-Variable opencvIncludePath "$projectPath/cpp/"
 Set-Variable opencvJNIPath "$projectPath/android/src/main/jniLibs/"
-Set-Variable zxingPath "$projectPath/ios/Classes/src/zxing"
+Set-Variable zxingPath "$projectPath/cpp/zxing"
 
 # Create the download directory
 mkdir -p download

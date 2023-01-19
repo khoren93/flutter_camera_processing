@@ -440,9 +440,9 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
                                   // Save image to device
                                   final file = File(tempPath);
                                   file.writeAsBytesSync(snapshot.requireData);
-                                  final path = file.path;
+                                  final path = XFile(file.path);
                                   // Share image
-                                  Share.shareFiles([path]);
+                                  Share.shareXFiles([path]);
                                 },
                                 child: const Text('Share'),
                               ),
