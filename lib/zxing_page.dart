@@ -1,7 +1,6 @@
 import 'dart:async';
 // import 'dart:developer';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ffi';
@@ -16,7 +15,6 @@ import 'package:image/image.dart' as imglib;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'isolate_utils.dart';
 import 'scanner_overlay.dart';
 
 late Directory tempDir;

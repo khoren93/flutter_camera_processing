@@ -50,8 +50,12 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Allow Flutter tools on your computer to connect and debug your application</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Can I use the camera please?</string>
+	<string>To process images from the camera</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>To process images from the photo library</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>
 </plist>

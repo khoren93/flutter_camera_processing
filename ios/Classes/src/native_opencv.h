@@ -19,6 +19,8 @@ extern "C"
      */
     unsigned int *opencvProcessStream(char *bytes, int width, int height);
 
+    void opencvProcessImage(char *input, char* output);
+
 #ifdef __cplusplus
 }
 #endif

@@ -4,7 +4,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 import 'package:flutter_camera_processing/generated_bindings.dart';
-import 'package:flutter_camera_processing/opencv_page.dart';
+import 'package:flutter_camera_processing/opencv_image_page.dart';
+import 'package:flutter_camera_processing/opencv_stream_page.dart';
 import 'package:flutter_camera_processing/zxing_page.dart';
 
 void main() {
@@ -70,13 +71,27 @@ class _MyAppState extends State<MyApp> {
         children: [
           Card(
             child: ListTile(
-              title: const Text('OpenCV Demo'),
+              title: const Text('OpenCV Image Processing Demo'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const OpencvPage(),
+                    builder: (context) => const OpencvImagePage(),
+                  ),
+                );
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: const Text('OpenCV Camera Stream Demo'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OpencvStreamPage(),
                   ),
                 );
               },

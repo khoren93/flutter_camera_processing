@@ -45,6 +45,12 @@ class FlutterCameraProcessing {
           .cast<Int8>()
           .asTypedList(width * height));
 
+  static opencvProcessImage(String input, String output) =>
+      bindings.opencvProcessImage(
+        input.toNativeUtf8().cast<Char>(),
+        output.toNativeUtf8().cast<Char>(),
+      );
+
   static String zxingVersion() =>
       bindings.zxingVersion().cast<Utf8>().toDartString();
 

@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_processing/flutter_camera_processing.dart';
 
-class OpencvPage extends StatefulWidget {
-  const OpencvPage({
+class OpencvStreamPage extends StatefulWidget {
+  const OpencvStreamPage({
     Key? key,
     this.onControllerCreated,
     this.scanFps = const Duration(milliseconds: 500),
@@ -21,10 +21,10 @@ class OpencvPage extends StatefulWidget {
   final ResolutionPreset resolution;
 
   @override
-  State<OpencvPage> createState() => _OpencvPageState();
+  State<OpencvStreamPage> createState() => _OpencvStreamPageState();
 }
 
-class _OpencvPageState extends State<OpencvPage> {
+class _OpencvStreamPageState extends State<OpencvStreamPage> {
   late List<CameraDescription> cameras;
   CameraController? controller;
 

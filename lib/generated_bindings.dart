@@ -56,6 +56,23 @@ class GeneratedBindings {
   late final _opencvProcessStream = _opencvProcessStreamPtr.asFunction<
       ffi.Pointer<ffi.UnsignedInt> Function(ffi.Pointer<ffi.Char>, int, int)>();
 
+  void opencvProcessImage(
+    ffi.Pointer<ffi.Char> input,
+    ffi.Pointer<ffi.Char> output,
+  ) {
+    return _opencvProcessImage(
+      input,
+      output,
+    );
+  }
+
+  late final _opencvProcessImagePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('opencvProcessImage');
+  late final _opencvProcessImage = _opencvProcessImagePtr.asFunction<
+      void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
   /// Returns the version of the zxing library.
   ///
   /// @return The version of the zxing library.
