@@ -17,7 +17,7 @@ extern "C"
      * @param height Image height.
      * @return Image bytes.
      */
-    unsigned int *opencvProcessStream(char *bytes, int width, int height);
+    const unsigned char *opencvProcessStream(char *bytes, int width, int height);
 
     void opencvProcessImage(char *input, char* output);
 

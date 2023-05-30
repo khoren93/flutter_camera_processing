@@ -66,8 +66,8 @@ class IsolateUtils {
     await for (final isolateData in port) {
       if (isolateData is ZxingIsolateData) {
         final image = isolateData.cameraImage;
-        final cropPercent = isolateData.cropPercent;
         final bytes = await convertImage(image);
+        final cropPercent = isolateData.cropPercent;
         final cropSize = (min(image.width, image.height) * cropPercent).round();
         final result = FlutterCameraProcessing.zxingProcessStream(
             bytes, image.width, image.height, cropSize);
@@ -78,7 +78,13 @@ class IsolateUtils {
         final bytes = await convertImage(image);
         final result = FlutterCameraProcessing.opencvProcessStream(
             bytes, image.width, image.height);
-        final img = imglib.Image.fromBytes(image.width, image.height, result);
+        final img = imglib.Image.fromBytes(
+          width: image.width,
+          height: image.height,
+          bytes: result.buffer,
+          numChannels: 4,
+          // order: imglib.ChannelOrder.bgra,
+        );
         final resultBytes = Uint32List.fromList(imglib.encodeJpg(img));
         isolateData.responsePort?.send(resultBytes);
       }

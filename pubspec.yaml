@@ -3,21 +3,21 @@ description: A new Flutter project.
 version: 0.0.1+1
 # homepage:
 environment:
-  sdk: ">=2.19.6 <3.0.0"
-  flutter: ">=3.3.0"
+  sdk: ">=3.0.1 <4.0.0"
+  flutter: ">=3.7.0"
 
 dependencies:
-  camera: ^0.10.4
-  ffi: ^2.0.1
+  camera: ^0.10.5
+  ffi: ^2.0.2
   flutter:
     sdk: flutter
-  image: ^3.3.0
+  image: ^4.0.0
   image_picker: ^0.8.7
   path_provider: ^2.0.14
-  share_plus: ^6.3.4
+  share_plus: ^7.0.1
 
 dev_dependencies:
-  ffigen: ^7.2.4 # dart run ffigen
+  ffigen: ^8.0.2 # dart run ffigen
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter

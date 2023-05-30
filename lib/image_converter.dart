@@ -1,40 +1,51 @@
-import 'dart:typed_data';
+// import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as imglib;
 
 // https://gist.github.com/Alby-o/fe87e35bc21d534c8220aed7df028e03
 
+// TODO: this is not working on iOS in portrait mode
 Future<Uint8List> convertImage(CameraImage image) async {
   try {
-    late imglib.Image img;
-    if (image.format.group == ImageFormatGroup.yuv420) {
-      img = convertYUV420(image);
-      return img.getBytes(
-          format: imglib.Format.luminance); //image.planes.first.bytes;
-    } else if (image.format.group == ImageFormatGroup.bgra8888) {
-      img = convertBGRA8888(image);
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
     }
-    return img.getBytes(format: imglib.Format.luminance);
+    final Uint8List bytes = allBytes.done().buffer.asUint8List();
+    return bytes;
+
+    // if (image.format.group == ImageFormatGroup.yuv420) {
+    //   return image.planes.first.bytes;
+    // } else if (image.format.group == ImageFormatGroup.bgra8888) {
+    //   // return image.planes.first.bytes;
+    //   return convertBGRA8888(image).getBytes(order: imglib.ChannelOrder.bgra);
+    // }
   } catch (e) {
     debugPrint(">>>>>>>>>>>> ERROR:$e");
   }
   return Uint8List(0);
 }
 
+// TODO: this is not working on iOS (yet) in Image v4
 imglib.Image convertBGRA8888(CameraImage image) {
+  final plane = image.planes.first;
   return imglib.Image.fromBytes(
-    image.width,
-    image.height,
-    image.planes[0].bytes,
-    format: imglib.Format.bgra,
+    width: image.width,
+    height: image.height,
+    bytes: image.planes.first.bytes.buffer,
+    rowStride: plane.bytesPerRow,
+    bytesOffset: 28,
+    order: imglib.ChannelOrder.bgra,
   );
 }
 
-// ignore: unused_element
 imglib.Image convertYUV420(CameraImage image) {
-  var img = imglib.Image(image.width, image.height); // Create Image buffer
+  var img = imglib.Image(
+    width: image.width,
+    height: image.height,
+  ); // Create Image buffer
 
   Plane plane = image.planes[0];
   const int shift = (0xFF << 24);
@@ -50,7 +61,8 @@ imglib.Image convertYUV420(CameraImage image) {
       // Calculate pixel color
       var newVal = shift | (pixelColor << 16) | (pixelColor << 8) | pixelColor;
 
-      img.data[planeOffset + x] = newVal;
+      img.data
+          ?.setPixel(x, planeOffset ~/ image.width, imglib.ColorInt8(newVal));
     }
   }
 

@@ -82,7 +82,7 @@ class _OpencvStreamPageState extends State<OpencvStreamPage> {
       widget.resolution,
       enableAudio: false,
       imageFormatGroup:
-          isAndroid() ? ImageFormatGroup.yuv420 : ImageFormatGroup.bgra8888,
+          isAndroid() ? ImageFormatGroup.yuv420 : ImageFormatGroup.yuv420,
     );
 
     try {

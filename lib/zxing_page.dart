@@ -197,7 +197,7 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
       widget.resolution,
       enableAudio: false,
       imageFormatGroup:
-          isAndroid() ? ImageFormatGroup.yuv420 : ImageFormatGroup.bgra8888,
+          isAndroid() ? ImageFormatGroup.yuv420 : ImageFormatGroup.yuv420,
     );
 
     try {
@@ -385,7 +385,10 @@ class _ZxingPageState extends State<ZxingPage> with TickerProviderStateMixin {
                           if (result.isValidBool) {
                             try {
                               final img = imglib.Image.fromBytes(
-                                  width, height, result.bytes);
+                                width: width,
+                                height: height,
+                                bytes: result.bytes.buffer,
+                              );
                               final resultBytes =
                                   Uint8List.fromList(imglib.encodeJpg(img));
                               _resultStream.add(resultBytes);
