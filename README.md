@@ -14,6 +14,12 @@ This Flutter plugin created to show how to use OpenCV and ZXing C++ libraries na
 
 We need download the defined versions of the OpenCV and ZXing libraries and install them.
 
+`wget` is essential for downloading files from the command line. It is used in this repository to fetch the OpenCV and ZXing libraries. 
+To install wget on macOS, use [Homebrew](https://brew.sh):
+```sh
+brew install wget
+```
+
 On MacOS run [init.sh](https://github.com/khoren93/flutter_camera_processing/blob/master/init.sh)
 
 ```sh
