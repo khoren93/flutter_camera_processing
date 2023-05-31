@@ -53,9 +53,9 @@ cp -R "zxing-cpp-$zxing_version/" "$zxingPath"
 # print success message for zxing
 echo "ZXing $zxing_version has been successfully installed"
 
-# remove the downloaded files
-rm -R ../download
-
 # run the update_ios.sh script to copy the source files to the ios project
 cd ..
 sh update_ios.sh
+
+# remove the downloaded files
+rm -R download
