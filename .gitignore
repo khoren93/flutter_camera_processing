@@ -28,5 +28,9 @@
 .packages
 build/
 
+src/include/
+src/zxing/
+
+ios/Classes/src/
+
 download/
-cpp/

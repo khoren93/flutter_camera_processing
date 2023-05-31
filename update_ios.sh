@@ -1,16 +1,16 @@
-# Description: This script is used to copy the source files from the src directory to the ios/Classes/src directory.
+# This script copies the source files from the src directory to the ios directory.
+# Should be run every time the src directory files are updated.
 
-# Define the paths to the directories where the files will be installed
-srcPath="../cpp" 
+srcPath="src" 
 zxingPath="$srcPath/zxing/core/src"
-iosSrcPath="../ios/Classes/src"
-iosZxingSrcPath="$iosSrcPath/zxing"
+iosSrcPath="ios/Classes/src"
 
 # Remove the source files if they exist
-rm -rf $iosZxingSrcPath
+rm -rf $iosSrcPath
 
 # create the source directories
-mkdir -p $iosZxingSrcPath
+mkdir -p $iosSrcPath
 
 # Copy the source files
-rsync -av "$zxingPath/" "$iosZxingSrcPath/"
+rsync -av --exclude '*.txt' --exclude "zxing/" --exclude "include/" "$srcPath/" "$iosSrcPath/" 
+rsync -av "$zxingPath/" "$iosSrcPath/zxing/"

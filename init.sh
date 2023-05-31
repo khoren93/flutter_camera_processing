@@ -1,16 +1,13 @@
-# Define the project name (the same as name: in the pubspec.yaml file)
-project="flutter_camera_processing"
-
 # Define the versions to download
 opencv_version="4.7.0"
 zxing_version="2.0.0"
 
 # Define the paths to the directories where the files will be installed
-projectPath="../../$project"
+projectPath="../"
 opencvIOSPath="$projectPath/ios"
-opencvIncludePath="$projectPath/cpp/"
+opencvIncludePath="$projectPath/src/"
 opencvJNIPath="$projectPath/android/src/main/jniLibs/"
-zxingPath="$projectPath/cpp/zxing"
+zxingPath="$projectPath/src/zxing"
 
 # Create the download directory
 mkdir -p download
@@ -58,3 +55,7 @@ echo "ZXing $zxing_version has been successfully installed"
 
 # remove the downloaded files
 rm -R ../download
+
+# run the update_ios.sh script to copy the source files to the ios project
+cd ..
+sh update_ios.sh
