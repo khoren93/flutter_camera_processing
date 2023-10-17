@@ -15,30 +15,30 @@ extern "C"
     }
 
     FUNCTION_ATTRIBUTE
-    const unsigned char *opencvProcessStream(char *bytes, int width, int height)
+    const uint8_t *opencvProcessStream(char *bytes, int width, int height)
     {
         long long start = get_now();
 
-    //    int rotation = 0;
+        //    int rotation = 0;
 
-        Mat src = Mat(height, width, CV_8UC1, bytes);
+        Mat src = Mat(height, width, CV_8UC3, bytes);
         Mat dst = src;
 
         // handle rotation
-//        if (rotation == 90)
-//        {
+        //        if (rotation == 90)
+        //        {
         //    transpose(src, dst);
         //    flip(dst, dst, 1);
-//        }
-//        else if (rotation == 180)
-//        {
-//            flip(src, dst, -1);
-//        }
-//        else if (rotation == 270)
-//        {
-//            transpose(src, dst);
-//            flip(dst, dst, 0);
-//        }
+        //        }
+        //        else if (rotation == 180)
+        //        {
+        //            flip(src, dst, -1);
+        //        }
+        //        else if (rotation == 270)
+        //        {
+        //            transpose(src, dst);
+        //            flip(dst, dst, 0);
+        //        }
 
         // Bitwise not the image
         // bitwise_not(src, dst);
@@ -46,7 +46,7 @@ extern "C"
 
         // return the image as a pointer to the data
         long length = dst.total() * dst.elemSize();
-        uchar *result = new uchar[length];
+        uint8_t *result = new uint8_t[length];
         memcpy(result, dst.data, length);
 
         delete[] bytes;

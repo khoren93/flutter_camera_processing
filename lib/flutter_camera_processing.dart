@@ -38,12 +38,12 @@ class FlutterCameraProcessing {
           CameraImage image) async =>
       await _inference(OpenCVIsolateData(image));
 
-  static Uint32List opencvProcessStream(
+  static Uint8List opencvProcessStream(
           Uint8List bytes, int width, int height) =>
-      Uint32List.fromList(bindings
+      Uint8List.fromList(bindings
           .opencvProcessStream(bytes.allocatePointer(), width, height)
-          .cast<Int8>()
-          .asTypedList(width * height));
+          .cast<Uint8>()
+          .asTypedList(width * height * 3));
 
   static opencvProcessImage(String input, String output) =>
       bindings.opencvProcessImage(

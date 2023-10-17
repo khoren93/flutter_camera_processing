@@ -1,4 +1,6 @@
 #ifdef __cplusplus
+#include <stdint.h>
+
 extern "C"
 {
 #endif
@@ -17,9 +19,9 @@ extern "C"
      * @param height Image height.
      * @return Image bytes.
      */
-    const unsigned char *opencvProcessStream(char *bytes, int width, int height);
+    const uint8_t *opencvProcessStream(char *bytes, int width, int height);
 
-    void opencvProcessImage(char *input, char* output);
+    void opencvProcessImage(char *input, char *output);
 
 #ifdef __cplusplus
 }

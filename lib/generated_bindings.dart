@@ -38,7 +38,7 @@ class GeneratedBindings {
   /// @param width Image width.
   /// @param height Image height.
   /// @return Image bytes.
-  ffi.Pointer<ffi.UnsignedChar> opencvProcessStream(
+  ffi.Pointer<ffi.Uint8> opencvProcessStream(
     ffi.Pointer<ffi.Char> bytes,
     int width,
     int height,
@@ -52,11 +52,10 @@ class GeneratedBindings {
 
   late final _opencvProcessStreamPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.UnsignedChar> Function(
+          ffi.Pointer<ffi.Uint8> Function(
               ffi.Pointer<ffi.Char>, ffi.Int, ffi.Int)>>('opencvProcessStream');
   late final _opencvProcessStream = _opencvProcessStreamPtr.asFunction<
-      ffi.Pointer<ffi.UnsignedChar> Function(
-          ffi.Pointer<ffi.Char>, int, int)>();
+      ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<ffi.Char>, int, int)>();
 
   void opencvProcessImage(
     ffi.Pointer<ffi.Char> input,

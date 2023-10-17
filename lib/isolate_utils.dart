@@ -82,7 +82,7 @@ class IsolateUtils {
           width: image.width,
           height: image.height,
           bytes: result.buffer,
-          numChannels: 4,
+          numChannels: 3,
           // order: imglib.ChannelOrder.bgra,
         );
         final resultBytes = Uint32List.fromList(imglib.encodeJpg(img));
