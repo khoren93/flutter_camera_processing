@@ -9,19 +9,21 @@ import 'package:image/image.dart' as imglib;
 // TODO: this is not working on iOS in portrait mode
 Future<Uint8List> convertImage(CameraImage image) async {
   try {
-    final WriteBuffer allBytes = WriteBuffer();
+    /*final WriteBuffer allBytes = WriteBuffer();
     for (final Plane plane in image.planes) {
       allBytes.putUint8List(plane.bytes);
     }
     final Uint8List bytes = allBytes.done().buffer.asUint8List();
     return bytes;
 
-    // if (image.format.group == ImageFormatGroup.yuv420) {
-    //   return image.planes.first.bytes;
-    // } else if (image.format.group == ImageFormatGroup.bgra8888) {
-    //   // return image.planes.first.bytes;
-    //   return convertBGRA8888(image).getBytes(order: imglib.ChannelOrder.bgra);
-    // }
+    bytes = allBytes.done().buffer.asUint8List();
+    return bytes;*/
+    if (image.format.group == ImageFormatGroup.yuv420) {
+      return convertYUV420(image).getBytes();
+    } else if (image.format.group == ImageFormatGroup.bgra8888) {
+      //return image.planes.first.bytes;
+      return convertBGRA8888(image).getBytes(order: imglib.ChannelOrder.rgba);
+    }
   } catch (e) {
     debugPrint(">>>>>>>>>>>> ERROR:$e");
   }
@@ -29,42 +31,67 @@ Future<Uint8List> convertImage(CameraImage image) async {
 }
 
 // TODO: this is not working on iOS (yet) in Image v4
+// Made change but don't know if its working or not. I don't have mac machine
 imglib.Image convertBGRA8888(CameraImage image) {
-  final plane = image.planes.first;
+  final plane = image.planes[0];
   return imglib.Image.fromBytes(
     width: image.width,
     height: image.height,
-    bytes: image.planes.first.bytes.buffer,
+    bytes: plane.bytes.buffer,
     rowStride: plane.bytesPerRow,
     bytesOffset: 28,
-    order: imglib.ChannelOrder.bgra,
+    order: imglib.ChannelOrder.rgba,
   );
 }
 
-imglib.Image convertYUV420(CameraImage image) {
-  var img = imglib.Image(
-    width: image.width,
-    height: image.height,
-  ); // Create Image buffer
+imglib.Image convertYUV420(CameraImage cameraImage) {
+  final imageWidth = cameraImage.width;
+  final imageHeight = cameraImage.height;
+  final yBuffer = cameraImage.planes[0].bytes;
+  final uBuffer = cameraImage.planes[1].bytes;
+  final vBuffer = cameraImage.planes[2].bytes;
 
-  Plane plane = image.planes[0];
-  const int shift = (0xFF << 24);
+  final int yRowStride = cameraImage.planes[0].bytesPerRow;
+  final int yPixelStride = cameraImage.planes[0].bytesPerPixel!;
 
-  // Fill image buffer with plane[0] from YUV420_888
-  for (int x = 0; x < image.width; x++) {
-    for (int planeOffset = 0;
-        planeOffset < image.height * image.width;
-        planeOffset += image.width) {
-      final pixelColor = plane.bytes[planeOffset + x];
-      // color: 0x FF  FF  FF  FF
-      //           A   B   G   R
-      // Calculate pixel color
-      var newVal = shift | (pixelColor << 16) | (pixelColor << 8) | pixelColor;
+  final int uvRowStride = cameraImage.planes[1].bytesPerRow;
+  final int uvPixelStride = cameraImage.planes[1].bytesPerPixel!;
 
-      img.data
-          ?.setPixel(x, planeOffset ~/ image.width, imglib.ColorInt8(newVal));
+  final image = imglib.Image(width: imageWidth, height: imageHeight);
+
+  for (int h = 0; h < imageHeight; h++) {
+    int uvh = (h / 2).floor();
+
+    for (int w = 0; w < imageWidth; w++) {
+      int uvw = (w / 2).floor();
+
+      final yIndex = (h * yRowStride) + (w * yPixelStride);
+
+      // Y plane should have positive values belonging to [0...255]
+      final int y = yBuffer[yIndex];
+
+      // U/V Values are subsampled i.e. each pixel in U/V chanel in a
+      // YUV_420 image act as chroma value for 4 neighbouring pixels
+      final int uvIndex = (uvh * uvRowStride) + (uvw * uvPixelStride);
+
+      // U/V values ideally fall under [-0.5, 0.5] range. To fit them into
+      // [0, 255] range they are scaled up and centered to 128.
+      // Operation below brings U/V values to [-128, 127].
+      final int u = uBuffer[uvIndex];
+      final int v = vBuffer[uvIndex];
+
+      // Compute RGB values per formula above.
+      int r = (y + v * 1436 / 1024 - 179).round();
+      int g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
+      int b = (y + u * 1814 / 1024 - 227).round();
+
+      r = r.clamp(0, 255);
+      g = g.clamp(0, 255);
+      b = b.clamp(0, 255);
+
+      image.setPixelRgb(w, h, r, g, b);
     }
   }
 
-  return img;
+  return image;
 }
